@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport({
 });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const getEmailVerificationTemplate = (fileName, verificationCode) => {
    
     try {
@@ -37,6 +38,25 @@ const getWelcomeMessageTemplate=(filename,userName)=>{
         throw new Error(`Error getting email welcomeMessage template : ${error.message}`);
     }
 };
+
+const getResetPasswordTemplate=(filename,resetURL)=>{
+    try {
+        let template = fs.readFileSync(path.join(__dirname,"templates",filename), "utf-8");
+        return template.replace("{{resetURL}}",resetURL);
+    } catch (error) {
+        console.log("Error getting resetPassword template");
+        throw new Error(`Error getting resetPassword template : ${error.message}`);
+    }
+}
+
+const getResetSuccessTemplate=(filename)=>{
+    try {
+       return fs.readFileSync(path.join(__dirname,"templates",filename), "utf-8");
+    } catch (error) {
+        console.log("Error getting reset success template");
+        throw new Error(`Error getting reset success template : ${error.message}`);
+    }
+}
 export const sendVerificationEmail = async (email, verificationCode) => {
     try {
         const emailTemplate = getEmailVerificationTemplate("verification-email.html", verificationCode);
@@ -64,7 +84,37 @@ export const sendWelcomeEmail=async(email,userName)=>{
       })
       console.log("wecome mail send to ",email);
     }catch(error){
-        console.log("Error sending sending welcome message");
-        throw new Error(`Error sending sending welcome message: ${error.message}`);
+        console.log("Error sending  welcome message");
+        throw new Error(`Error sending  welcome message: ${error.message}`);
     }
 };
+
+export const sendPasswordResetEmail=async(email,resetURL)=>{
+   try{
+    const emailTemplate=getResetPasswordTemplate("resetPassword.html",resetURL);
+   await transporter.sendMail({
+    from: `"Chat App" <no-reply@chatapp.com>`,
+    to: email,
+    subject: "Reset Your Password",
+    html: emailTemplate
+   })
+   }catch(error){
+    console.log("Error sending resetPassword message");
+    throw new Error(`Error sending resetPassword message: ${error.message}`);
+   }
+};
+
+export const sendResetSuccessEmail=async(email)=>{
+    try{
+        const emailTemplate=getResetSuccessTemplate("resetSuccess.html");
+       await transporter.sendMail({
+        from: `"Chat App" <no-reply@chatapp.com>`,
+        to: email,
+        subject: "Reset Success",
+        html: emailTemplate
+       })
+       }catch(error){
+        console.log("Error sending reset success message");
+        throw new Error(`Error sending reset success message: ${error.message}`);
+       }
+}
