@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background: linear-gradient(to right, #5dade2, #85c1e9);
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+        }
+        .content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .code-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .verification-code {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #3498db;
+            padding: 10px;
+            background: #ecf0f1;
+            display: inline-block;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.8em;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .content {
+                padding: 15px;
+            }
+            .verification-code {
+                font-size: 24px;
+                letter-spacing: 3px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Verify Your Email ✅</h1>
+    </div>
+    <div class="content">
+        <p>Hello,</p>
+        <p>Thank you for signing up! Your verification code is:</p>
+        <div class="code-container">
+            <span class="verification-code">{{verificationCode}}</span>
+        </div>
+        <p>Enter this code on the verification page to complete your registration.</p>
+        <p>This code will expire in 5 minutes for security reasons. ⏳</p>
+        <p>If you didn't create an account with us, please ignore this email.</p>
+        <p>Best regards,<br>💬 Chat App Team</p>
+    </div>
+    <div class="footer">
+        <p>This is an automated message, please do not reply to this email. </p>
+    </div>
+</body>
+</html>
