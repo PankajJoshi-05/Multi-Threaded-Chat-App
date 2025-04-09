@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.custom-gradient {
+    background: linear-gradient(135deg, #5CD0B0, #3CC999, #23C784, #19C27A);
+}
+.responsive-clip-path {
+    clip-path:  polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
+  }
+  
+@media (min-width: 640px) {
+    .clip-path-sm {
+      clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%);
+    }
+  }
