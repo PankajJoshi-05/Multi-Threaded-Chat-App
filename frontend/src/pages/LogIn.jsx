@@ -1,10 +1,24 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff } from "lucide-react"
-
+import { Link,useNavigate} from 'react-router-dom';
+import  {useAuthStore} from '../store/authStore';
 function LogIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
+
+  const {isLoading,error,login}=useAuthStore();
+  const navigate=useNavigate();
+  const handleSubmit=async (e)=>{
+    e.preventDefault();
+    try{
+       await login(email,password);
+       navigate("/");
+    }catch(error){
+      console.log("Error in Login ",error)
+    }
+  };
+
   return (
     <div className='flex justify-center items-center h-screen bg-[#AEF6D9]'>
       <div className="sm:h-[28rem] bg-[#AEF6D9] flex flex-col sm:flex-row rounded-lg overflow-hidden">
@@ -66,13 +80,18 @@ function LogIn() {
               </button>
             </div>
 
-            <button className="bg-[c] text-white px-5 py-2 rounded-3xl bg-[#389e74] hover:bg-[#40e09b] transition">
-              Log In
+            <button 
+            type='submit'
+            className="bg-[c] text-white px-5 py-2 rounded-3xl bg-[#389e74] hover:bg-[#40e09b] transition"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            >
+              {isLoading?"Logging In...":"Log In"}
             </button>
             <div className="text-sm text-gray-600"
             >
               Create an account
-              <span className="text-sm text-[#34bb85] hover:text-[#6fd4a9] font-bold cursor-pointer pl-2" >Sign Up </span>
+              <Link to="/signup" className="text-sm text-[#34bb85] hover:text-[#6fd4a9] font-bold cursor-pointer pl-2" >Sign Up </Link>
 
             </div>
           </form>

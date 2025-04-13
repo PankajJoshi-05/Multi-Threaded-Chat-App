@@ -85,7 +85,7 @@ export const verifyEmail = async (req, res) => {
             verificationTokenExpiresAt: { $gt: Date.now() },
         });
         if (!user) {
-            res.status(400).json({ status: false, message: "Invalid verification code" });
+            return res.status(400).json({ status: false, message: "Invalid verification code" });
         }
         user.isVerified = true;
         user.verificationToken = undefined;

@@ -1,10 +1,26 @@
 import React, { useState ,useRef} from 'react';
 import { MailCheck } from 'lucide-react';
+import {useAuthStore} from '../store/authStore';
+import { useNavigate } from 'react-router-dom';
 
 function EmailCodeVerification() {
 
   const [code,setCode]=useState(["","","","","",""]);
   const inputRefs=useRef([]);
+
+  const navigate=useNavigate();
+  const {error,isLoading,verifyEmail}=useAuthStore();
+
+  const handleSubmit=async(e)=>{
+    e.preventDefault();
+    const verificationCode=code.join("");
+    try{
+      await verifyEmail(verificationCode);
+      navigate("/");
+    }catch(error){
+      console.log(error);
+    }
+  }
 
   const handleChange=(value,index)=>{
     if(!/^\d*$/.test(value))return;
@@ -59,8 +75,12 @@ function EmailCodeVerification() {
             className="w-10  bg-[#ECEDEC] focus:bg-white outline-[#389e74] font-bold p-3 mr-2 mt-3"/>
           ))}
         </div>
-        <button className="bg-[#389e74] text-white px-10 py-3 rounded-3xl hover:bg-[#40e09b] transition m-4">
-          Verify
+        <button 
+        className="bg-[#389e74] text-white px-10 py-3 rounded-3xl hover:bg-[#40e09b] transition m-4"
+        disabled={isLoading}
+        onClick={handleSubmit}
+        >
+          {isLoading?"Verifying":'Verify'}
         </button>
         <p className=" px-6 py-2 rounded-3xl mt-2">
           Resend Code

@@ -1,11 +1,26 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff } from "lucide-react"
+import { Link,useNavigate} from 'react-router-dom';
+import {useAuthStore} from "../store/authStore";
 
 function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [userName,setUserName]=useState("");
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
+
+  const navigate=useNavigate();
+  const {signup ,error,isLoading}=useAuthStore();
+
+  const handleSubmit=async(e)=>{
+    e.preventDefault();
+    try{
+      await signup(userName,email,password);
+      navigate("/verify-email");
+    }catch(error){
+      console.log("Error in SignUp handleSubmit ",error);
+    }
+  }
   return (
     <div className='flex justify-center items-center h-screen bg-[#AEF6D9]'>
       <div className="sm:h-[28rem] bg-[#AEF6D9] flex flex-col sm:flex-row rounded-lg overflow-hidden">
@@ -86,13 +101,17 @@ function SignUp() {
               </button>
             </div>
 
-            <button className="bg-[c] text-white px-5 py-2 rounded-3xl bg-[#389e74] hover:bg-[#40e09b] transition">
-              Sign Up
+            <button 
+            className="bg-[c] text-white px-5 py-2 rounded-3xl bg-[#389e74] hover:bg-[#40e09b] transition"
+            onClick={(handleSubmit)}
+            disabled={isLoading}
+            >
+              {isLoading?"Signing In...":"Sign Up"}
             </button>
             <div className="text-sm text-gray-600"
             >
               Already have an account?
-              <span className="text-sm text-[#34bb85] hover:text-[#6fd4a9] font-bold cursor-pointer " >Log In </span>
+              <Link to="/login" className="text-sm text-[#34bb85] hover:text-[#6fd4a9] font-bold cursor-pointer " >Log In </Link>
 
             </div>
           </form>
@@ -102,4 +121,4 @@ function SignUp() {
   )
 }
 
-export default SignUp
+export default SignUp;
