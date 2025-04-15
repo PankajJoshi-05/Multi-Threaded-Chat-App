@@ -6,10 +6,12 @@ import { useNavigate } from 'react-router-dom';
 function EmailCodeVerification() {
 
   const [code,setCode]=useState(["","","","","",""]);
+  const [resendDisabled,setResendDisabled]=useState(false);
+  const [countDown,setCountDown]=useState(30);
   const inputRefs=useRef([]);
 
   const navigate=useNavigate();
-  const {error,isLoading,verifyEmail}=useAuthStore();
+  const {error,isLoading,verifyEmail,resendVerificationCode}=useAuthStore();
 
   const handleSubmit=async(e)=>{
     e.preventDefault();
@@ -55,6 +57,25 @@ function EmailCodeVerification() {
       }
     }
   }
+  const handleResendCode=async ()=>{
+   try{
+      setResendDisabled(true);
+      let timer=30;
+      setCountDown(30);
+      const interval=setInterval(()=>{
+        timer-=1;
+        setCountDown(timer);
+        if(timer<=0){
+          clearInterval(interval);
+          setResendDisabled(false);
+        }
+      },1000);
+     const response=await resendVerificationCode();
+   }catch(error){
+    console.error("Error resending code:",error);
+    setResendDisabled(false);
+   }
+  }
   return (
     <div className="flex justify-center items-center h-screen bg-[#7af7dc] px-4">
       <div className='w-[60%] lg:w-[45%] bg-white  flex flex-col justify-center items-center py-3 shadow-lg rounded-3xl text-[#0A8754]'>
@@ -82,9 +103,17 @@ function EmailCodeVerification() {
         >
           {isLoading?"Verifying":'Verify'}
         </button>
-        <p className=" px-6 py-2 rounded-3xl mt-2">
-          Resend Code
-        </p>
+
+        <button 
+        className={`px-6 py-2 rounded-3xl mt-2  ${ resendDisabled || isLoading
+          ? 'text-gray-400 cursor-not-allowed' 
+          : 'text-[#389e74] hover:text-[#40e09b] cursor-pointer'
+      }`}
+        disabled={isLoading||resendDisabled}
+        onClick={handleResendCode}
+        >
+         {resendDisabled ? `Resend code in ${countDown}s` : 'Resend Code'}
+        </button>
       </div>
     </div>
   );

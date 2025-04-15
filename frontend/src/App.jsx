@@ -1,14 +1,22 @@
-import React, { lazy } from "react"
+import React, { lazy, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import  ProtectedRoute  from "./components/auth/ProtectedRoute";
 import RedirectAuthenticatedUser from "./components/auth/RedirectAuthenticatedUser";
+import ProtectedVerifyRoute from "./components/auth/ProtectedVerifyRoute"
+import { useAuthStore } from "./store/authStore";
+import { Loader } from "./components/Loader";
 
 const SignUp = lazy(() => import("./pages/SignUp"));
 const LogIn = lazy(() => import("./pages/LogIn"));
 const EmailCodeVerification = lazy(() => import("./pages/EmailCodeVerification"));
 
 function App() {
+   const {checkAuth} =useAuthStore();
 
+   useEffect(()=>{
+     checkAuth();
+   },[checkAuth])
+  
   return (
     <BrowserRouter>
       <Routes>
@@ -18,7 +26,7 @@ function App() {
           </ProtectedRoute>
         } />
           <Route path="/signup" element={
-              <RedirectAuthenticatedUser>
+            <RedirectAuthenticatedUser >
                    <SignUp/>
               </RedirectAuthenticatedUser>
           } />
@@ -28,7 +36,9 @@ function App() {
            </RedirectAuthenticatedUser>
         } />
         <Route path="/verify-email" element={
-            <EmailCodeVerification />
+          <ProtectedVerifyRoute>
+             <EmailCodeVerification/>
+            </ProtectedVerifyRoute>
           } />
       </Routes>
     </BrowserRouter>

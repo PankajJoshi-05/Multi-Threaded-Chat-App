@@ -57,6 +57,7 @@ const getResetSuccessTemplate=(filename)=>{
         throw new Error(`Error getting reset success template : ${error.message}`);
     }
 }
+
 export const sendVerificationEmail = async (email, verificationCode) => {
     try {
         const emailTemplate = getEmailVerificationTemplate("verification-email.html", verificationCode);

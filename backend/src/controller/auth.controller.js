@@ -26,7 +26,7 @@ export const signup = async (req, res) => {
             email,
             password: hashedPassword,
             verificationToken,
-            verificationTokenExpiresAt: Date.now() + 5 * 60 * 1000
+            verificationTokenExpiresAt: Date.now() + 5 * 60 * 1000 //5min
         });
 
         //save the user at the database
@@ -105,7 +105,37 @@ export const verifyEmail = async (req, res) => {
         console.log("Error in verifyMail ", error);
         res.status(500).json({ success: false, message: "server error" });
     }
+};
+
+export const resendVerificationCode=async(req,res)=>{
+   try{
+    const userId=req.userId;
+    const user=await User.findById(userId);
+    if(!user){
+      return res.status(404).json({success:false,message:"User not Found"});
+    }
+
+    if(user.isVerified){
+        return res.status(400).json({success:false,message:"email is already verified"});
+    }
+
+    const verificationCode=crypto.randomInt(100000,999999).toString();
+    user.verificationToken=verificationCode;
+    user.verificationTokenExpiresAt=Date.now()+5*60*1000; // 5 min
+
+    await user.save();
+
+    await sendVerificationEmail(user.email,verificationCode);
+
+    res.status(200).json({
+        success:true,
+        message:"Verifiaction code resent successfully"
+    });
+}catch(error){
+    console.log("Error in resendVerificationCode","error");
+    res.status(500).json({success:false,message:"Internal server error"});
 }
+};
 
 export const logout = (req, res) => {
     res.cookie("jwt", "");
