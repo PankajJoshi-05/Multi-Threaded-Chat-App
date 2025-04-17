@@ -33,7 +33,7 @@ function SignUp() {
           <p className="text-sm opacity-80">Stay connected, share your thoughts, and explore endless possibilities!</p>
         </div>
         <div className='w-[90%] sm:w-auto flex-[0.6] sm:flex-[0.7] h-[25rem] bg-white items-center my-auto  mt-[-8%] sm:mt-auto sm:-ml-[6%] rounded-3xl flex flex-col gap-4 justify-center py-8 sm:py-2 mx-auto'>
-          <h1 className='text-lg font-bold '>Sign Up</h1>
+          <h1 className='text-lg font-bold text-[#389e74]'>Sign Up</h1>
 
           <form className="w-[80%] flex flex-col gap-4 justify-center items-center">
 

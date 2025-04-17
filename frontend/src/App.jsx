@@ -1,46 +1,46 @@
-import React, { lazy, useEffect } from "react"
+import React, { lazy, Suspense, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import  ProtectedRoute  from "./components/auth/ProtectedRoute";
-import RedirectAuthenticatedUser from "./components/auth/RedirectAuthenticatedUser";
-import ProtectedVerifyRoute from "./components/auth/ProtectedVerifyRoute"
 import { useAuthStore } from "./store/authStore";
 import { Loader } from "./components/Loader";
-
 const SignUp = lazy(() => import("./pages/SignUp"));
 const LogIn = lazy(() => import("./pages/LogIn"));
 const EmailCodeVerification = lazy(() => import("./pages/EmailCodeVerification"));
-
+const ForgotPassword=lazy(()=>import("./pages/ForgotPassword"));
+const ResetPassword=lazy(()=>import("./pages/ResetPassword"));
+const ProtectedRoute=lazy(()=>import("./components/auth/ProtectedRoute"));
+const ProtectedVerifyRoute=lazy(()=>import("./components/auth/ProtectedVerifyRoute"))
+const RedirectAuthenticatedUser=lazy(()=>import("./components/auth/RedirectAuthenticatedUser"));
 function App() {
    const {checkAuth} =useAuthStore();
 
    useEffect(()=>{
      checkAuth();
+     console.log("checking Auth...");
    },[checkAuth])
   
   return (
     <BrowserRouter>
+      <Suspense fallback={<Loader/>}>
       <Routes>
         <Route path="/" element={
           <ProtectedRoute>
             <h1>Home</h1>
           </ProtectedRoute>
         } />
-          <Route path="/signup" element={
-            <RedirectAuthenticatedUser >
-                   <SignUp/>
-              </RedirectAuthenticatedUser>
-          } />
-        <Route path="/login" element={
-           <RedirectAuthenticatedUser>
-                 <LogIn/>
-           </RedirectAuthenticatedUser>
-        } />
+
+        <Route element={<RedirectAuthenticatedUser/>}>
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<LogIn />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        </Route>
         <Route path="/verify-email" element={
           <ProtectedVerifyRoute>
              <EmailCodeVerification/>
             </ProtectedVerifyRoute>
           } />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

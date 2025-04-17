@@ -166,7 +166,7 @@ export const forgotPassword=async(req,res)=>{
     console.log("Error in forgotPassword : ",error);
     res.status(500).json({success:false,message:"Internal Server Error"});
   }
-}
+};
 
 export const resetPassword=async(req,res)=>{
     try{
@@ -197,7 +197,7 @@ export const resetPassword=async(req,res)=>{
       console.log("Error in reset Password : ",error);
       res.status(500).json({success:false,message:"Internal Server Error"});
     }
-}
+};
 
 export const checkAuth=async(req,res)=>{
     try{

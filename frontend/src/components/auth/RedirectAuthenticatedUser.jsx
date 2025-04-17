@@ -1,8 +1,8 @@
 import { useAuthStore } from "../../store/authStore";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 //redirect authenticated users to home page
-const RedirectAuthenticatedUser=({children})=>{
+const RedirectAuthenticatedUser=()=>{
     const {isAuthenticated,user}=useAuthStore();
     console.log(isAuthenticated);
     console.log(user?.isVerified);
@@ -10,6 +10,6 @@ const RedirectAuthenticatedUser=({children})=>{
     if(isAuthenticated && user?.isVerified){
        return <Navigate to="/" replace/>
     }
-    return children;
+    return <Outlet/>;
 }
 export default RedirectAuthenticatedUser;

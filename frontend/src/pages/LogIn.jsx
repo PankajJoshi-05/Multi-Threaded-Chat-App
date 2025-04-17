@@ -32,7 +32,7 @@ function LogIn() {
           <p className="text-sm opacity-80">Stay connected, share your thoughts, and explore endless possibilities!</p>
         </div>
         <div className='w-[90%] sm:w-auto flex-[0.6] sm:flex-[0.7] h-[25rem] bg-white items-center my-auto  mt-[-8%] sm:mt-auto sm:-ml-[6%] rounded-3xl flex flex-col gap-4 justify-center py-8 sm:py-2 mx-auto'>
-          <h1 className='text-lg font-bold '>Log In</h1>
+          <h1 className='text-lg font-bold text-[#389e74]'>Log In</h1>
 
           <form className="w-[80%] flex flex-col gap-4 justify-center items-center">
 
@@ -80,7 +80,9 @@ function LogIn() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-
+            <div className='text-[#34bb85] hover:text-[#6fd4a9] cursor-pointer font-medium text-md'>
+              <Link to="/forgot-password">Forgot Password</Link>
+            </div>
             <button 
             type='submit'
             className="bg-[c] text-white px-5 py-2 rounded-3xl bg-[#389e74] hover:bg-[#40e09b] transition"
@@ -93,7 +95,6 @@ function LogIn() {
             >
               Create an account
               <Link to="/signup" className="text-sm text-[#34bb85] hover:text-[#6fd4a9] font-bold cursor-pointer pl-2" >Sign Up </Link>
-
             </div>
           </form>
         </div>
