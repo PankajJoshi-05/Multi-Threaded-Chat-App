@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 .custom-gradient {
     background: linear-gradient(135deg, #5CD0B0, #3CC999, #23C784, #19C27A);
 }

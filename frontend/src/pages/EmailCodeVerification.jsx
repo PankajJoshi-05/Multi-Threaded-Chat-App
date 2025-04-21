@@ -101,7 +101,7 @@ function EmailCodeVerification() {
         disabled={isLoading}
         onClick={handleSubmit}
         >
-          {isLoading?"Verifying":'Verify'}
+          {isLoading?"Verifying...":'Verify'}
         </button>
 
         <button 

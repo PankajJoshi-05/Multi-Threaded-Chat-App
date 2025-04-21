@@ -10,7 +10,7 @@ const ProtectedVerifyRoute=({children})=>{
       }
       
       if(isAuthenticated && user?.isVerified){
-        <Navigate to="/" replace/>
+       return <Navigate to="/" replace/>
       }
       return children;
 }

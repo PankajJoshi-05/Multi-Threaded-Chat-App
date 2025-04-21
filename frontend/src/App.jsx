@@ -10,9 +10,11 @@ const ResetPassword=lazy(()=>import("./pages/ResetPassword"));
 const ProtectedRoute=lazy(()=>import("./components/auth/ProtectedRoute"));
 const ProtectedVerifyRoute=lazy(()=>import("./components/auth/ProtectedVerifyRoute"))
 const RedirectAuthenticatedUser=lazy(()=>import("./components/auth/RedirectAuthenticatedUser"));
+const PageNotFound=lazy(()=>import("./pages/PageNotFound"));
+const Home=lazy(()=>import("./pages/Home"));
+
 function App() {
    const {checkAuth} =useAuthStore();
-
    useEffect(()=>{
      checkAuth();
      console.log("checking Auth...");
@@ -24,7 +26,7 @@ function App() {
       <Routes>
         <Route path="/" element={
           <ProtectedRoute>
-            <h1>Home</h1>
+            <Home/>
           </ProtectedRoute>
         } />
 
@@ -39,6 +41,7 @@ function App() {
              <EmailCodeVerification/>
             </ProtectedVerifyRoute>
           } />
+        <Route path="*" element={<PageNotFound/>}/>
       </Routes>
       </Suspense>
     </BrowserRouter>
