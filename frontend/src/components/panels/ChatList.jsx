@@ -29,7 +29,8 @@ const ChatList = () => {
     },
     ];
       return (
-    <div>
+    <>
+      <h2 className='text-2xl font-semibold text-white'>Chats</h2>
       <Search/>
       <div className="flex items-center justify-evenly p-2 border-b">
         {['all', 'groups', 'contacts'].map((tab) =>(
@@ -48,7 +49,7 @@ const ChatList = () => {
             <ChatListItem name={chat.name} profilePic={chat.profilePic} lastMessage={chat.lastmessage} time={chat.time} unreadMessages={chat.unreadMessages}/>                     
             </div>
       ))}
-    </div>
+    </>
   )
 }
 

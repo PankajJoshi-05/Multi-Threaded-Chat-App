@@ -2,7 +2,7 @@ import React from 'react'
 
 const Avatar = ({src,alt}) => {
   return (
-    <div className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+    <>
         {src ? (
             <img src={src} alt={alt} className="w-full h-full object-cover" />
         ) : (
@@ -10,7 +10,7 @@ const Avatar = ({src,alt}) => {
             <span>{ alt.charAt(0).toUpperCase() }</span>
             </div>
         )}
-    </div>
+    </>
   )
 }
 
