@@ -13,6 +13,12 @@ const userSchema=new mongoose.Schema({
       type:String,
       required:true
     },
+    profile:{
+        type:String
+     },
+    bio:{
+        type:String,
+    },
     lastLogin:{
         type:Date,
         default:Date.now,

@@ -1,53 +1,73 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Avatar from '../ui/Avatar';
 import { Edit2, Check, X ,Camera} from 'lucide-react';
-
+import {useUserStore } from "../../store/userStore"
+import ProfileSkeleton from "../skeletons/ProfileSkeleton";
 const Profile = () => {
-  const [user, setUser] = useState({
-    userName: "John Doe",
-    email: "john@gmail.com",
-    profilePic: "",
-    bio: "Life is tentative so make the most out of it",
-    lastLogin: "Today, 10:00 AM"
-  });
+   const {getProfile,isUserProfileLoading,userProfile,error,updateProfile}=useUserStore();
   
   const [isHovered, setIsHovered] = useState(false);
   const [isEditingName,setisEditingName]=useState(false);
   const [isEditingBio,setisEditingBio]=useState(false);
-  const [tempName,setTempName]=useState(user.userName);
-  const [tempBio,setTempBio]=useState(user.bio);
- 
+  const [tempName,setTempName]=useState('');
+  const [tempBio,setTempBio]=useState('');
+  const [tempProfilePic,setTempProfilePic]=useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    getProfile();
+  }, []);
+
+  useEffect(() => {
+    if (userProfile) {
+      setTempName(userProfile.userName);
+      setTempBio(userProfile.bio);
+      setTempProfilePic(userProfile.profile);
+    }
+  }, [userProfile]);
+
   const handleCancelEditName=()=>{
-    setTempName(user.userName);
+    setTempName(userProfile.userName);
     setisEditingName(false);
   }
-  const handleSaveName=()=>{
-    setUser((prevUser)=>({...prevUser, userName: tempName}));
+  const handleSaveName=async ()=>{
+    const formData=new FormData();
+    formData.append('userName', tempName);
+    formData.append('bio', tempBio); 
+    formData.append('profile', tempProfilePic);
+    await updateProfile(formData);
     setisEditingName(false);
   }
   const handleCancelEditBio=()=>{
-    setTempBio(user.bio);
+    setTempBio(userProfile.bio);
     setisEditingBio(false);
   }
-  const handleSaveBio=()=>{
-    setUser((prevUser)=>({...prevUser,bio:tempBio}));
+  const handleSaveBio=async()=>{
+    const formData=new FormData();
+    formData.append('userName', tempName);
+    formData.append('bio', tempBio); 
+    formData.append('profile', tempProfilePic);
+    await updateProfile(formData);
     setisEditingBio(false);
   }
  const handleProfileClick=()=>{
   fileInputRef.current.click();
  }
-  const handleProfilePicChange=(e)=>{
+  const handleProfilePicChange=async (e)=>{
      const file=e.target.files[0];
-     if(file){
-      const reader=new FileReader();
-      reader.onload=(event)=>{
-        setUser(prev=>({...prev,profilePic:event.target.result}));
-      }
-      reader.readAsDataURL(file);
-     }
+     if(!file)return;
+     const formData=new FormData();
+     formData.append('profile',file); 
+     formData.append('userName',tempName); 
+     formData.append('bio',tempBio); 
+
+     setIsUploadingImage(true);
+     await updateProfile(formData);
+     setIsUploadingImage(false);
   }
+   if(isUserProfileLoading || !userProfile) {
+    return <ProfileSkeleton/>;}
 
   return (
     <div className="h-full w-full flex flex-col bg-gray-400 p-4">
@@ -59,8 +79,14 @@ const Profile = () => {
       onMouseEnter={()=>setIsHovered(true)}
       onMouseLeave={()=>setIsHovered(false)}
       onClick={handleProfileClick}>
-         <Avatar src={user.profilePic} alt={user.userName}/>
-        {isHovered && (<div className="absolute inset-0  bg- bg-opacity-200 flex justify-center items-center"><Camera className='text-white w-12 h-12'/></div>)}
+         <Avatar src={tempProfilePic} alt={tempName}/>
+        {isHovered && ( <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center">
+              {isUploadingImage ? (
+                <span className="text-white text-sm">Uploading...</span>
+              ) : (
+                <Camera className="text-white w-12 h-12" />
+              )}
+            </div>)}
       </div>
       <input
        type="file" 
@@ -88,6 +114,7 @@ const Profile = () => {
             className="flex-1 outline-none"
             autoFocus
             maxLength={20}
+            required
             />
             <div className='flex gap-2'>
               <button className="text-green-500"
@@ -102,10 +129,10 @@ const Profile = () => {
             </>
           ):(
            <>
-             <span className="text-gray-800">{user.userName}</span>
+             <span className="text-gray-800">{userProfile.userName}</span>
              <button 
              onClick={()=>{
-              setTempName(user.userName);
+              setTempName(userProfile.userName);
               setisEditingName(true);
              }}>
               <Edit2/>
@@ -117,7 +144,7 @@ const Profile = () => {
 
       <div className="bg-white rounded-lg shadow-md p-4 mb-2 ">
           <h2 className="text-sm font-medium text-gray-500 mb-1">Your Email</h2>
-          <p className='border-b-2 p-3 border-gray-300'>{user.email}</p>
+          <p className='border-b-2 p-3 border-gray-300'>{userProfile.email}</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4 mb-2">
@@ -152,10 +179,10 @@ const Profile = () => {
             </>
           ):(
            <>
-             <span className="text-gray-800">{user.bio}</span>
+             <span className="text-gray-800">{userProfile.bio}</span>
              <button 
              onClick={()=>{
-              setTempBio(user.bio);
+              setTempBio(userProfile.bio);
               setisEditingBio(true);
              }}>
               <Edit2/>
@@ -167,7 +194,7 @@ const Profile = () => {
 
       <div className="bg-white rounded-lg shadow-md p-4 mb-2">
           <h2 className="text-sm font-medium text-gray-500 mb-1">Last Login</h2>
-          <p className='border-b-2 p-3 border-gray-300'>{user.lastLogin}</p>
+          <p className='border-b-2 p-3 border-gray-300'>{new Date(userProfile.lastLogin).toLocaleString()}</p>
       </div>
     </div>
   );

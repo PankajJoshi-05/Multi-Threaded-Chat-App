@@ -25,7 +25,7 @@ const Sidebar = () => {
             {/* Bottom Icons */}
             <div className='flex flex-col gap-4 mb-4'>
                 <div className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-                    <Avatar src={user.profilePic} alt={user.userName} />
+                    <Avatar src={user.profile} alt={user.userName} />
                 </div>
                 <div className='bg-gray-800 p-2 rounded-full'> 
                     <Settings/>
