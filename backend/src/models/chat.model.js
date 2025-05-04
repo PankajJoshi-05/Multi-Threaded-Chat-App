@@ -5,6 +5,9 @@ const ChatSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    profile:{
+        type:String,
+    },
     groupChat: {
         type: Boolean,
         default: false,
@@ -31,5 +34,5 @@ const ChatSchema = new mongoose.Schema({
     timestamps: true,
 })
 
-const Chat = mongoose.model("Chat", ChatSchema);
+const Chat = mongoose.models.Chat||mongoose.model("Chat", ChatSchema);
 export default Chat;
