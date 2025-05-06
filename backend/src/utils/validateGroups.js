@@ -1,8 +1,10 @@
-const validateGroup = async (chatId, userId, res) => {
+import Chat from "../models/chat.model.js";
+const validateGroup = async (chatId, userId) => {
+    console.log(chatId,userId);
     const group = await Chat.findById(chatId);
-    if (!group) return res.status(404).json({ message: "Group not found" });
-    if (!group.groupChat) return res.status(400).json({ message: "Not a group chat" });
-    if (group.creator.toString() !== userId) return res.status(403).json({ message: "Only the creator can perform this action" });
+    if (!group) throw new Error("Group not found");
+    if (!group.groupChat) throw new Error("This is not a group chat");
+    if (group.creator.toString() !== userId) throw new Error("You are not the creator of this group");
     return group;
   };
 

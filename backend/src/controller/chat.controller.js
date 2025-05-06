@@ -52,7 +52,7 @@ export const changeGroupName=async(req,res)=>{
         if (!name) return res.status(400).json({ message: "Group name is required" });
         if (!chatId) return res.status(400).json({ message: "Chat ID is required" });
     
-       const group=await validateGroup(chatId,req.userId,res);
+       const group=await validateGroup(chatId,req.userId);
 
         group.name = name;
         await group.save();
@@ -70,7 +70,7 @@ export const changeGroupProfile=async(req,res)=>{
      
         const chatId=req.params.id;
 
-       const group= await validateGroup(chatId,req.userId,res);
+       const group= await validateGroup(chatId,req.userId);
 
         const filePath=req.file.path;
         const result=await cloudinary.uploader.upload(filePath,{folder:'profile'});
@@ -98,7 +98,7 @@ export const addMembers=async(req,res)=>{
           return res.status(400).json({ message: "At least one member is required" });
         if (!chatId) return res.status(400).json({ message: "Chat ID is required" });
     
-        const group =await validateGroup(chatId, req.userId, res);
+        const group =await validateGroup(chatId, req.userId);
 
         const newMembers = members.filter(
           id => !group.members.map(m => m.toString()).includes(id)
@@ -122,7 +122,7 @@ export const removeMember=async(req,res)=>{
           return res.status(400).json({ message: "Chat ID and Member ID are required" });
         }
     
-        const group =await validateGroup(chatId, req.userId, res);
+        const group =await validateGroup(chatId, req.userId);
     
         if (!group.members.includes(memberId)) {
           return res.status(400).json({ message: "User is not a member of this group" });
@@ -139,7 +139,7 @@ export const removeMember=async(req,res)=>{
 }
 
 // get groupMembers
-export const getMembers = async (req,res)=>{
+export const getGroupMembers = async (req,res)=>{
     try {
       const { chatId } = req.body;
     
@@ -155,8 +155,22 @@ export const getMembers = async (req,res)=>{
       if(!group.groupChat){
         return res.status(400).json({ message: "This is not a group chat" });
       }
+      
+      const currentUserId = req.userId;
+      const creatorId = group.creator.toString();
+  
+      // Sort members: current user → creator → others
+      const sortedMembers = group.members.sort((a, b) => {
+        if (a._id.toString() === currentUserId) return -1;
+        if (b._id.toString() === currentUserId) return 1;
+  
+        if (a._id.toString() === creatorId) return -1;
+        if (b._id.toString() === creatorId) return 1;
+  
+        return 0;
+      });
 
-      res.status(200).json({ members: group.members });
+      res.status(200).json({ members: sortedMembers });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch members", error: error.message });
     }
@@ -166,7 +180,7 @@ export const getMembers = async (req,res)=>{
 export const leaveGroup=async(req,res)=>{
     try {
         const chatId = req.params.id;
-    
+        const { newCreator } = req.body;
         const chat = await Chat.findById(chatId);
         if (!chat) {
           return res.status(404).json({ message: "Chat not found" });
@@ -174,15 +188,44 @@ export const leaveGroup=async(req,res)=>{
         if(!chat.groupChat){
           return res.status(400).json({message:"This is not a group chat"});
         }
-        // Prevent creator from leaving the group unless ownership is transferred
-        if (chat.creator.toString() === req.userId) {
-          return res.status(400).json({ message: "Group creator cannot leave the group" });
+
+        //check if user is a member
+        const isMember = chat.members.some(memberId => memberId.toString() === req.userId);
+        
+        if (!isMember) {
+            return res.status(403).json({ message: "You are not a member of this group" });
         }
-    
-        // Remove the user from the group
-        chat.members = chat.members.filter(
+
+        const isCreator = chat.creator.toString()===req.userId;
+
+         //if only creator is left delete the group 
+         if(chat.members.length===1 && isCreator){  
+          await Chat.findByIdAndDelete(chatId);
+          return res.status(200).json({message:"Group deleted successfully"});
+        }
+       
+        const remainingMembers=chat.members.filter(
           (memberId) => memberId.toString() !== req.userId
-        );
+        )
+        // Prevent creator from leaving the group unless ownership is transferred
+        if(isCreator){
+          if (!newCreator) {
+            return res.status(400).json({ message: "Need to tranfer the ownership first" });
+          }
+            const isNewCreatorMember = remainingMembers.some(
+              memberId => memberId.toString() === newCreator
+          );
+          
+          if (!isNewCreatorMember) {
+              return res.status(400).json({ 
+                  message: "New creator must be a member of the group" 
+              });
+          }
+        
+          chat.creator = newCreator;
+        }
+        // Remove the user from the group
+        chat.members = remainingMembers
     
         await chat.save();
     
@@ -192,10 +235,23 @@ export const leaveGroup=async(req,res)=>{
       }
 }
 
+//delete the group
+export const deleteGroup=async(req,res)=>{
+  const chatId=req.params.id;
+  try{
+    const group=await validateGroup(chatId,req.userId);
+    await Chat.deleteOne({_id:chatId});
+    res.status(200).json({message:"Group deleted successfully"});
+  }catch(error){
+    console.log("Error deleting group",error);
+    res.status(500).json({message:"Failed to delete group",error:error.message});
+  }
+}
+
 //get All the users
 export const getAllUsers=async (req,res)=>{
     try {
-        const users = await User.find({ _id: { $ne: req.userId } }) // exclude the logged-in user
+        const users = await User.find({ _id: { $ne: req.userId } })
           .select("name  profile");
     
         res.status(200).json({ users });
