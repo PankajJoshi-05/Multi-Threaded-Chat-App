@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-const MessageSchema = new mongoose.Schema;({
+const MessageSchema = new mongoose.Schema({
     sender:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
@@ -16,7 +16,7 @@ const MessageSchema = new mongoose.Schema;({
     },
     type:{
         type:String,
-        enum:["text","image","video","audio"],
+        enum:["text","image","video","audio","file"],
         default:"text"
     }
 },{

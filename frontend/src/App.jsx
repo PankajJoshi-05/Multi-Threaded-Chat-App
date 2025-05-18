@@ -13,6 +13,12 @@ const RedirectAuthenticatedUser=lazy(()=>import("./components/auth/RedirectAuthe
 const PageNotFound=lazy(()=>import("./pages/PageNotFound"));
 const Home=lazy(()=>import("./pages/Home"));
 
+const ChatList=lazy(()=>import("./components/panels/ChatList"));
+const UserList = lazy(() => import("./components/panels/UserList"));
+const CreateGroup = lazy(() => import("./components/panels/CreateGroup"));
+const Profile = lazy(() => import("./components/panels/Profile"));
+const Settings = lazy(() => import("./components/panels/Settings"));
+
 function App() {
    const {checkAuth} =useAuthStore();
    useEffect(()=>{
@@ -26,10 +32,15 @@ function App() {
       <Routes>
         <Route path="/" element={
           <ProtectedRoute>
-            <Home/>
+            <Home/>   
           </ProtectedRoute>
-        } />
-
+        }>
+        
+          <Route path="search-friend" element={<UserList />} />
+          <Route path="create-group" element={<CreateGroup />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
         <Route element={<RedirectAuthenticatedUser/>}>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<LogIn />} />
