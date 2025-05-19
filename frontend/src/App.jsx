@@ -35,7 +35,7 @@ function App() {
             <Home/>   
           </ProtectedRoute>
         }>
-        
+          <Route index element={<ChatList />} />
           <Route path="search-friend" element={<UserList />} />
           <Route path="create-group" element={<CreateGroup />} />
           <Route path="profile" element={<Profile />} />

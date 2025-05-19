@@ -43,9 +43,9 @@ export const getChats=async(req,res)=>{
         };
       }
     });
-        res.status(200).json({ message: "Chats fetched successfully", chats:processedChats });
+        res.status(200).json({success:true, message: "Chats fetched successfully", chats:processedChats });
       } catch (error) {
-        res.status(500).json({ message: "Failed to fetch chats", error: error.message });
+        res.status(500).json({ success:false,message: "Failed to fetch chats", error: error.message });
       }
 }
 // create group
@@ -54,8 +54,8 @@ export const createGroup=async(req,res)=>{
      const {name,members}=req.body;
      if(!name) return res.status(400).json({message:"Group name is required"});
 
-     if(!Array.isArray(members) || members.length < 2){
-        return res.status(400).json({message:"Group must have at least 2 members"});
+     if(!Array.isArray(members) || members.length < 1){
+        return res.status(400).json({message:"Group must have at least 1 members"});
      }
 
      const group=await Chat.create({
