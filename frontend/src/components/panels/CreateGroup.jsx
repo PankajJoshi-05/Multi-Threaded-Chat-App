@@ -1,30 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Check } from "lucide-react";
-import axios from "axios";
-import useChatStore from "../../store/chatListStore";
-
-const API_URL = "http://localhost:3000/api/v1/chats";
+import { Check, Search } from "lucide-react";
+import Avatar from "../ui/Avatar";
+import useChatStore from "../../store/chatStore";
 
 const CreateGroup = () => {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const { fetchChats } = useChatStore();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const {
+    allUsers,
+    fetchAllUsers,
+    createGroup,
+    isGroupCreating,
+    isAllUsersLoading,
+  } = useChatStore();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/get-all-users`, {
-          withCredentials: true,
-        });
-        setUsers(res.data.users);
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
-      }
-    };
-    fetchUsers();
-  }, []);
+    fetchAllUsers();
+  }, [fetchAllUsers]);
 
   const toggleUser = (userId) => {
     setSelectedUsers((prev) =>
@@ -37,86 +31,108 @@ const CreateGroup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedUsers.length < 1) {
-      alert("Please select at least 1 users to create a group.");
+      alert("Please select at least 1 user to create a group.");
       return;
     }
 
-    try {
-      setLoading(true);
-      const response = await axios.post(
-        `${API_URL}/create-group`,
-        {
-          name: groupName,
-          members: selectedUsers,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+    const result = await createGroup({
+      name: groupName,
+      members: selectedUsers,
+    });
 
-      if (response.data.groupData) {
-        console.log("Group Created:", response.data.groupData);
-        await fetchChats();
-        setGroupName("");
-        setSelectedUsers([]);
-        alert("Group created successfully!");
-      }
-    } catch (error) {
-      console.error("Error creating group:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Failed to create group.");
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      setGroupName("");
+      setSelectedUsers([]);
+      alert("Group created successfully!");
+    } else {
+      alert(result.message || "Failed to create group.");
     }
   };
 
+  const filteredUsers = allUsers.filter((user) =>
+    user.userName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  console.log(filteredUsers);
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-xl p-6 bg-white rounded-2xl shadow-lg">
-        <h2 className="text-2xl font-semibold mb-6 text-center">Create New Group</h2>
+    <div className="w-full h-screen bg-base-200 p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full h-full bg-base-100 shadow-xl rounded-2xl flex flex-col p-6"
+      >
+        <h2 className="text-2xl font-bold text-center mb-4 text-base-content">
+          Create New Group
+        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
-            <input
-              type="text"
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Enter group name"
-              required
-            />
-          </div>
+        <div className="mb-3">
+          <label className="text-sm font-medium text-base-content mb-1 block">
+            Group Name
+          </label>
+          <input
+            type="text"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            className="input input-bordered w-full"
+            placeholder="Enter group name"
+            required
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Members</label>
-            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2">
-              {users.map((user) => {
-                const selected = selectedUsers.includes(user._id);
-                return (
-                  <div
-                    key={user._id}
-                    onClick={() => toggleUser(user._id)}
-                    className={`flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition ${
-                      selected ? "bg-blue-100" : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="text-gray-800">{user.userName}</span>
-                    {selected && <Check className="text-blue-600 w-5 h-5" />}
-                  </div>
-                );
-              })}
+        <div className="mb-3 flex items-center gap-2">
+          <Search className="w-4 h-4 text-base-content" />
+          <input
+            type="text"
+            className="input input-sm input-bordered flex-1"
+            placeholder="Search users"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto mt-1 space-y-3 pr-1">
+          {isAllUsersLoading?(
+            <div className="flex items-center justify-center h-full">
+              <p>Loading...</p>
             </div>
-          </div>
+          ):filteredUsers.length === 0 ? (
+            <p className="text-center text-secondary">No users found.</p>
+          ) : (
+            filteredUsers.map((user) => {
+              const selected = selectedUsers.includes(user._id);
+              return (
+                <div
+                  key={user._id}
+                  onClick={() => toggleUser(user._id)}
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors shadow-sm ${
+                    selected
+                      ? "bg-primary text-primary-content"
+                      : "bg-base-200 hover:bg-base-300"
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 border-2 overflow-hidden rounded-full">
+                      <Avatar src={user.profilePic} alt={user.userName} />
+                    </div>
+                    <span className="font-medium">{user.userName}</span>
+                  </div>
+                  {selected && (
+                    <Check className="w-5 h-5 text-primary-content" />
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
 
+        <div className="pt-4">
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+            disabled={isGroupCreating}
+            className="btn btn-primary w-full"
           >
-            {loading ? "Creating..." : "Create Group"}
+            {isGroupCreating ? "Creating..." : "Create Group"}
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 };

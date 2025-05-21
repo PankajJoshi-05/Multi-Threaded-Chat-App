@@ -7,8 +7,7 @@ const router=express.Router();
 
 router.put("/update-profile",verifyToken,singleUpload,updateProfile);
 router.get("/get-profile",verifyToken,getProfile);
-
-router.get("/search-user",verifyToken,searchUser);
+router.get("/get-newusers",verifyToken,searchUser);
 router.put("/send-request",verifyToken,sendFriendRequest);
 router.put("/accept-request",verifyToken,acceptFriendRequest);
 router.get("/get-my-notifications",verifyToken,getMynotifications);

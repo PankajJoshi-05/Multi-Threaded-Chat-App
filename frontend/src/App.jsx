@@ -1,9 +1,11 @@
 import React, { lazy, Suspense, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
+import { useThemeStore } from "./store/themeStore";
 import { Loader } from "./components/Loader";
 const SignUp = lazy(() => import("./pages/SignUp"));
 const LogIn = lazy(() => import("./pages/LogIn"));
+const Logout = lazy(() => import("./pages/Logout"));
 const EmailCodeVerification = lazy(() => import("./pages/EmailCodeVerification"));
 const ForgotPassword=lazy(()=>import("./pages/ForgotPassword"));
 const ResetPassword=lazy(()=>import("./pages/ResetPassword"));
@@ -12,7 +14,6 @@ const ProtectedVerifyRoute=lazy(()=>import("./components/auth/ProtectedVerifyRou
 const RedirectAuthenticatedUser=lazy(()=>import("./components/auth/RedirectAuthenticatedUser"));
 const PageNotFound=lazy(()=>import("./pages/PageNotFound"));
 const Home=lazy(()=>import("./pages/Home"));
-
 const ChatList=lazy(()=>import("./components/panels/ChatList"));
 const UserList = lazy(() => import("./components/panels/UserList"));
 const CreateGroup = lazy(() => import("./components/panels/CreateGroup"));
@@ -21,12 +22,15 @@ const Settings = lazy(() => import("./components/panels/Settings"));
 
 function App() {
    const {checkAuth} =useAuthStore();
+   const {theme}=useThemeStore();
+   console.log("theme",theme);
    useEffect(()=>{
      checkAuth();
      console.log("checking Auth...");
    },[checkAuth])
-  
+   
   return (
+    <div data-theme={theme} >
     <BrowserRouter>
       <Suspense fallback={<Loader/>}>
       <Routes>
@@ -36,11 +40,14 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<ChatList />} />
+          <Route path="chat/:id" element={<ChatList />} />
           <Route path="search-friend" element={<UserList />} />
           <Route path="create-group" element={<CreateGroup />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
+           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
+       
+          <Route path="/logout" element={<Logout />} />
         <Route element={<RedirectAuthenticatedUser/>}>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<LogIn />} />
@@ -56,6 +63,7 @@ function App() {
       </Routes>
       </Suspense>
     </BrowserRouter>
+    </div>
   )
 }
 

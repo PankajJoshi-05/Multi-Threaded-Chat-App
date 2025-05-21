@@ -60,7 +60,7 @@ export const createGroup=async(req,res)=>{
 
      const group=await Chat.create({
         name,
-        profile:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSu1W91ZeJWfVGv-P1Q9MEc5NoG5jHTzDIlwA&s",
+        profile:"",
         creator:req.userId, 
         members:[...members,req.userId],
         groupChat:true}
@@ -294,9 +294,9 @@ export const getAllUsers=async (req,res)=>{
         const users = await User.find({ _id: { $ne: req.userId } })
           .select("userName  profile");
     
-        res.status(200).json({ users });
+        res.status(200).json({success:true, users });
       } catch (error) {
-        res.status(500).json({ message: "Failed to fetch users", error: error.message });
+        res.status(500).json({success:false, message: "Failed to fetch users", error: error.message });
       }
 };
 
@@ -373,7 +373,7 @@ export const sendAttachments=async (req,res)=>{
     messages
    });
   }catch(error){
-    res.status(500).json({message:"Failed to send attachments",error: error.message })
+    res.status(500).json({success:false,message:"Failed to send attachments",error: error.message })
   }
 };
 
@@ -423,9 +423,9 @@ export const sendVoiceMessage = async (req, res) => {
     emitEvent(req,NEW_ATTACHMENT,chat.members,{message:messageForRealTime,chatId});
     emitEvent(req,NEW_MESSAGE_ALERT,chat.members,{chatId});
 
-    res.status(201).json({ message: "Voice message sent successfully", message });
+    res.status(201).json({success:true, message: "Voice message sent successfully", message });
   } catch (error) {
-    res.status(500).json({ message: "Failed to send voice message", error: error.message });
+    res.status(500).json({success:false, message: "Failed to send voice message", error: error.message });
   }
 };
 
@@ -450,6 +450,6 @@ export const getMessages=async(req,res)=>{
       messages,
       totalPages});
    }catch(error){
-     res.status(500).json({message:"Failed to get messages",error: error.message })
+     res.status(500).json({success:false,message:"Failed to get messages",error: error.message })
    }
 }

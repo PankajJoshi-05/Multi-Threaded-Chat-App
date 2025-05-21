@@ -1,35 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import Search from "../ui/Search";
 import ChatListItem from '../chat/ChatListItem';
-import useChatStore from '../../store/chatListStore.js';
+import  useChatStore  from '../../store/chatStore';
+import {formatChatTime} from "./../../constants/formatChatTime.js"
+import { useNavigate } from 'react-router-dom';
 
 const ChatList = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const { chats, loading, error, fetchChats } = useChatStore();
-
+  const {chats, fetchChats,isChatsLoading,setSelectedChat}=useChatStore();
   useEffect(() => {
     fetchChats();
-  }, []);
-  const filterChats = chats
+  }, [fetchChats]);
+
+  const filterChats = (chats||[])
     .filter(chat => {
       if (activeTab === "groups") return chat.groupChat;
       if (activeTab === "contacts") return !chat.groupChat;
       return true;
     })
-    .filter(chat => 
+    .filter(chat =>
       chat.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
   return (
-    <>
-      <h2 className='text-2xl font-semibold text-white'>Chats</h2>
+    <div className="h-full w-full space-y-4">
+      <h2 className='text-2xl font-semibold text-base-content'>Chats</h2>
       <Search searchValue={searchQuery} setSearchValue={setSearchQuery} />
-      <div className="flex items-center justify-evenly p-2 border-b">
+      
+      <div className="flex items-center justify-evenly p-2 border-b border-base-300">
         {['all', 'groups', 'contacts'].map((tab) => (
           <button
             key={tab}
-            className={`rounded-full px-4 py-1 capitalize ${activeTab === tab ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            className={`rounded-full px-4 py-1 capitalize text-sm transition-colors 
+              ${activeTab === tab 
+                ? 'bg-primary text-primary-content' 
+                : 'bg-base-200 text-base-content hover:bg-base-300'}`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -37,27 +44,31 @@ const ChatList = () => {
         ))}
       </div>
 
-      {loading ? (
-        <p className="text-center text-gray-400 mt-4">Loading chats...</p>
-      ) : error ? (
-        <p className="text-center text-red-500 mt-4">Error: {error}</p>
+      {isChatsLoading ? (
+        <p className="text-center text-base-content/70 mt-4">Loading chats...</p>
       ) : filterChats.length > 0 ? (
         filterChats.map((chat) => (
-          <div key={chat._id}>
+          <div key={chat._id}
+            onClick={()=>{
+              setSelectedChat(chat._id);
+              navigate(`/chat/${chat._id}`)
+            }}
+            className='cursor-pointer'
+          >
             <ChatListItem 
               name={chat.name} 
               profilePic={chat.profile} 
               lastMessage={chat.lastMessage?.content || ''} 
-              time={new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+              time={formatChatTime(chat.updatedAt)} 
             />
           </div>
         ))
       ) : (
         <div className="flex justify-center h-full items-center">
-          <p className='text-xl text-gray-500'>No Chats Found</p>
+          <p className='text-xl text-base-content/50'>No Chats Found</p>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Smile, Paperclip, Send,Mic,X,StopCircle} from "lucide-react";
+import { Smile, Paperclip, Send, Mic, X, StopCircle } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 
 const MessageInput = () => {
@@ -14,16 +14,15 @@ const MessageInput = () => {
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const recordingTimerRef = useRef(null);
-  const cancelRecordingRef= useRef(false);
+  const cancelRecordingRef = useRef(false);
+
   const handleSend = () => {
     if (message.trim()) {
       console.log("Text message:", message);
       setMessage("");
     }
     if (selectedFiles.length > 0) {
-      selectedFiles.forEach((file) =>
-        console.log("Attached file:", file.name)
-      );
+      selectedFiles.forEach((file) => console.log("Attached file:", file.name));
       setSelectedFiles([]);
     }
     if (audioBlob) {
@@ -32,17 +31,15 @@ const MessageInput = () => {
     }
   };
 
-  const handleEomojiClick = (emojiData) => {
+  const handleEmojiClick = (emojiData) => {
     setMessage((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
-  }
-  const toggleEomojiPciker=()=>{
-    setShowEmojiPicker(!showEmojiPicker);
-  }
-
-  const handleAttachClick = () => {
-    fileInputRef.current.click();
   };
+
+  const toggleEmojiPicker = () => setShowEmojiPicker(!showEmojiPicker);
+
+  const handleAttachClick = () => fileInputRef.current.click();
+
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
     setSelectedFiles((prevFiles) => [...prevFiles, ...newFiles]);
@@ -50,9 +47,7 @@ const MessageInput = () => {
   };
 
   const removeSelectedFile = (index) => {
-    setSelectedFiles((prevFiles) =>
-      prevFiles.filter((_, i) => i !== index)
-    );
+    setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
   useEffect(() => {
@@ -63,81 +58,79 @@ const MessageInput = () => {
     }
   }, [message]);
 
-const startRecording = async() => {
-  try{
-    cancelRecordingRef.current = false;
-    const stream=await navigator.mediaDevices.getUserMedia({ audio: true });
+  const startRecording = async () => {
+    try {
+      cancelRecordingRef.current = false;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      const chunks = [];
 
-    const mediaRecorder = new MediaRecorder(stream);
-    mediaRecorderRef.current = mediaRecorder;
-  
-    const chunks=[];
-    mediaRecorder.ondataavailable = (e) => {
-      if(e.data.size>0)chunks.push(e.data);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        if (!cancelRecordingRef.current && chunks.length > 0) {
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          setAudioBlob(blob);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Error starting recording:", error);
     }
+  };
 
-    mediaRecorder.onstop=()=>{
-      if (!cancelRecordingRef.current && chunks.length > 0) {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        setAudioBlob(blob);
-      }
-    };
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      cancelRecordingRef.current = false;
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+    }
+  };
 
-    mediaRecorder.start();
-    setIsRecording(true);
+  const cancelRecording = () => {
+    cancelRecordingRef.current = true;
+    stopRecording();
     setRecordingTime(0);
-    
-    recordingTimerRef.current = setInterval(() => {
-      setRecordingTime((prev) => prev + 1);
-    },1000);
-  }catch(error){
-    console.error("Error starting recording:", error);
-  }
-}
-
-const stopRecording=()=>{
-  if(mediaRecorderRef.current){
-    cancelRecordingRef.current = false;
-    mediaRecorderRef.current.stop();
-    mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
-    setIsRecording(false);
-    clearInterval(recordingTimerRef.current);
-  }
-}
-
-
-const cancelRecording = () => {
-  stopRecording();
-  setRecordingTime(0);
-};
+  };
 
   return (
-    <div className="absolutefixed bottom-0 left-0 w-full p-3 border-t bg-white ">
-    {selectedFiles.length > 0 && (
+    <div className="absolute fixed bottom-0 left-0 w-full p-3 border-t bg-base-100 z-10">
+      {selectedFiles.length > 0 && (
         <div className="flex gap-2 flex-wrap mb-2">
           {selectedFiles.map((file, index) => (
             <div
               key={index}
-              className="relative w-28 min-h-20 bg-gray-100 border rounded overflow-hidden flex items-center justify-center text-xs text-center p-1"
+              className="relative w-28 min-h-20 bg-base-200 border rounded overflow-hidden flex items-center justify-center text-xs text-center p-1"
             >
               {file.type.startsWith("image/") ? (
                 <img
                   src={URL.createObjectURL(file)}
                   alt={file.name}
                   className="object-cover w-full h-full cursor-pointer"
-                  onClick={() => window.open(URL.createObjectURL(file), '_blank')}
+                  onClick={() => window.open(URL.createObjectURL(file), "_blank")}
                 />
               ) : (
                 <div
-                  className="px-1 text-xs break-words w-full text-center text-gray-700 dark:text-gray-200 cursor-pointer"
-                  onClick={() => window.open(URL.createObjectURL(file), '_blank')}
+                  className="px-1 text-xs break-words w-full text-center text-base-content cursor-pointer"
+                  onClick={() => window.open(URL.createObjectURL(file), "_blank")}
                 >
                   {file.name}
                 </div>
               )}
               <button
                 onClick={() => removeSelectedFile(index)}
-                className="absolute top-0 right-0 bg-white rounded-bl text-red-500"
+                className="absolute top-0 right-0 bg-base-100 rounded-bl text-error"
               >
                 <X size={14} />
               </button>
@@ -145,42 +138,44 @@ const cancelRecording = () => {
           ))}
         </div>
       )}
-  {audioBlob && (
-        <div className="flex items-center gap-2 mb-2 p-2 bg-gray-100 rounded">
+
+      {audioBlob && (
+        <div className="flex items-center gap-2 mb-2 p-2 bg-base-200 rounded">
           <audio controls src={URL.createObjectURL(audioBlob)} className="w-full" />
           <button
             onClick={() => setAudioBlob(null)}
-            className="text-red-500 hover:text-red-700"
+            className="text-error hover:text-error-content"
           >
             <X size={20} />
           </button>
         </div>
       )}
-{isRecording && (
-        <div className="flex items-center justify-between mb-2 p-2 bg-red-100 rounded text-sm">
-          <span className="text-red-500">
+
+      {isRecording && (
+        <div className="flex items-center justify-between mb-2 p-2 bg-error/10 rounded text-sm">
+          <span className="text-error">
             Recording: {recordingTime}s...
           </span>
-          <button 
+          <button
             onClick={cancelRecording}
-            className="text-red-500 hover:text-red-700 flex items-center gap-1"
+            className="text-error hover:text-error-content flex items-center gap-1"
           >
             <X size={16} /> Cancel
           </button>
         </div>
       )}
 
-      <div className="flex items-end gap-2 rounded-2xl border px-4 py-2 bg-gray-100 ">
-        <button 
-        onClick={toggleEomojiPciker}
-        className="text-gray-500 hover:text-gray-700 ="
+      <div className="flex items-end gap-2 rounded-2xl border px-4 py-2 bg-base-200">
+        <button
+          onClick={toggleEmojiPicker}
+          className="text-base-content/70 hover:text-base-content"
         >
           <Smile size={20} />
         </button>
 
-        <button 
-        onClick={handleAttachClick}
-        className="text-gray-500 hover:text-gray-700 "
+        <button
+          onClick={handleAttachClick}
+          className="text-base-content/70 hover:text-base-content"
         >
           <Paperclip size={20} />
         </button>
@@ -191,45 +186,45 @@ const cancelRecording = () => {
           onChange={handleFileChange}
           className="hidden"
         />
+
         <textarea
           ref={textareaRef}
-          className="flex-1 resize-none overflow-hidden bg-transparent outline-none text-sm text-gray-800  placeholder:text-gray-400 max-h-40"
+          className="flex-1 resize-none overflow-hidden bg-transparent outline-none text-sm text-base-content placeholder:text-base-content/60 max-h-40"
           rows={1}
           placeholder="Type a message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
-       {(message.trim() || selectedFiles.length > 0 || audioBlob)? (
+
+        {(message.trim() || selectedFiles.length > 0 || audioBlob) ? (
           <button
             onClick={handleSend}
-            className="text-blue-500 hover:text-blue-700 "
+            className="text-primary hover:text-primary-content"
           >
             <Send size={20} />
           </button>
         ) : isRecording ? (
-          <button 
-            onClick={stopRecording} 
-            className="text-red-500 hover:text-red-700"
+          <button
+            onClick={stopRecording}
+            className="text-error hover:text-error-content"
           >
             <StopCircle size={24} />
           </button>
         ) : (
-          <button 
-            onClick={startRecording} 
-            className="text-gray-500 hover:text-gray-700"
+          <button
+            onClick={startRecording}
+            className="text-base-content/70 hover:text-base-content"
           >
             <Mic size={20} />
           </button>
         )}
       </div>
-      {
-        showEmojiPicker  && (
-          <div className="w-full mt-2">
-            <EmojiPicker onEmojiClick={handleEomojiClick}
-            width="100%" />
-          </div>
-        )
-      }
+
+      {showEmojiPicker && (
+        <div className="w-full mt-2">
+          <EmojiPicker onEmojiClick={handleEmojiClick} width="100%" />
+        </div>
+      )}
     </div>
   );
 };

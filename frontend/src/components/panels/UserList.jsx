@@ -1,77 +1,81 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Plus } from "lucide-react";
-import Avatar from "../ui/Avatar"; 
-const API_URL = "http://localhost:3000/api/v1/user";
+import { Plus, Search } from "lucide-react";
+import Avatar from "../ui/Avatar";
+import { useUserStore } from "../../store/userStore";
 
 const UserList = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [requesting, setRequesting] = useState({}); 
+  const [searchText, setSearchText] = useState("");
+  const { isNewUsersLoading, newUsers, fetchNewUsers,sendFriendRequest} = useUserStore();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`${API_URL}/search-user`, {
-          withCredentials: true,
-        });
-        setUsers(res.data.users || []);
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
+    fetchNewUsers();
+  }, [fetchNewUsers]);
 
-  const sendRequest = async (userId) => {
-    try {
-      setRequesting((prev) => ({ ...prev, [userId]: true }));
-      await axios.put(`${API_URL}/send-request`, { receiverId: userId }, { withCredentials: true });
+  // Loading state
+  if (isNewUsersLoading) {
+    return (
+      <div className="flex items-center justify-center w-full h-full bg-base-100 text-base-content">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
-      alert("Request sent!");
-    } catch (err) {
-      console.error("Failed to send request:", err);
-      alert("Failed to send request.");
-    } finally {
-      setRequesting((prev) => ({ ...prev, [userId]: false }));
-    }
-  };
+  // Filtered users based on search input
+  const filteredUsers = (newUsers || []).filter((user) =>
+    user.userName?.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white rounded-2xl shadow-lg mt-10">
-      <h2 className="text-xl font-semibold mb-4">Search New Friend</h2>
+    <div className="w-full h-full p-4 bg-base-100 text-base-content flex flex-col">
+      <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <Search className="w-5 h-5 text-secondary" />
+        Search New Friends
+      </h2>
 
-      {loading ? (
-        <p>Loading users...</p>
-      ) : users.length === 0 ? (
-        <p>No users found.</p>
-      ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {users.map((user) => (
-            <div
-              key={user._id}
-              className="flex items-center justify-between p-3 border border-gray-200 rounded-xl"
-            >
-              <div className="flex items-center space-x-3">
-                <Avatar src={user.avatar} alt={user.userName} />
-                <span className="text-gray-800 font-medium">{user.userName}</span>
-              </div>
+      {/* Search Input */}
+      <div className="mb-4 relative">
+        <input
+          type="text"
+          placeholder="Search by username..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="input input-bordered w-full pr-10"
+        />
+        <Search className="absolute right-3 top-3 w-5 h-5 text-secondary" />
+      </div>
 
-              <button
-                onClick={() => sendRequest(user._id)}
-                disabled={requesting[user._id]}
-                className="text-blue-600 hover:text-blue-800 transition disabled:opacity-50"
-                title="Send Friend Request"
+      {/* User List */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredUsers.length === 0 ? (
+          <p className="text-center text-secondary">No users found.</p>
+        ) : (
+          <div className="space-y-3 pr-1">
+            {filteredUsers.map((user) => (
+              <div
+                key={user._id}
+                className="flex items-center justify-between p-3 rounded-xl bg-base-200 hover:bg-base-300 transition-colors shadow-sm"
               >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+
+                  <Avatar src={user.avatar} alt={user.userName} />
+                  </div>
+                  <span className="font-medium">{user.userName}</span>
+                </div>
+
+                <button
+                  onClick={() => {sendFriendRequest(user._id);
+                  }}
+                  className="btn btn-sm btn-primary btn-circle disabled:opacity-50"
+                  title="Send Friend Request"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

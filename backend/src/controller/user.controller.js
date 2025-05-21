@@ -76,21 +76,32 @@ export const searchUser = async (req, res) => {
 
 export const sendFriendRequest=async(req,res)=>{
     try{
-     const {userId}=req.body;
+     const {receiverId}=req.body;
+     if(!receiverId)return res.status(400).json({success:false,message:"Receiver id is required"});
+     console.log("userId in sendFriendRequest backend" ,receiverId);
      const request=await Request.findOne({
-        $or:[
-        {sender:userId,receiver:req.userId},
-        {sender:req.userId,receiver:userId},
-        ] ,
-    });
-     if(request)return res.status(400).json({message:"Request already sent"});
-     await Request.create({sender:req.userId,receiver:userId});
+      $or: [
+    {
+      sender: receiverId,
+      receiver: req.userId
+    },
+    {
+      sender: req.userId,
+      receiver: receiverId
+    }
+  ]
+});
+   if(request)
+     return res.status(200).json({success:false,message:"Request already sent"});
+    
+     await Request.create({sender:req.userId,receiver:receiverId});
 
-     emitEvent(req,NEW_REQUEST,[userId]);
+     emitEvent(req,NEW_REQUEST,[receiverId]);
 
-     return res.status(200).json({message:"Request sent successfully"});
+     return res.status(409).json({success:true,message:"Request sent successfully"});
     }catch(error){
-        res.status(500).json({message:"Failed to send request",error: error.message });
+        console.log("Error in sendFriendRequest", error);
+        res.status(500).json({success:false,message:"Failed to send request",error: error.message });
     }
 }
 

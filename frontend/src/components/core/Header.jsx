@@ -1,29 +1,27 @@
 import React, { useState } from 'react';
-import { Bell, Sun, Moon } from 'lucide-react';
+import { Bell } from 'lucide-react';
 const Header = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(3);
 
   return (
-    <div className="w-full h-16 bg-gray-800 text-white flex items-center justify-between px-6 sticky top-0">
-    
+    <div className="w-full h-16 bg-base-200 text-base-content flex items-center justify-between px-6 shadow sticky top-0 z-50">
       <div className="flex items-center space-x-2">
         <h1 className="text-2xl font-semibold">ChatApp</h1>
       </div>
+
       <div className="flex items-center space-x-4">
-       
-        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full hover:bg-gray-700">
-          {isDarkMode ? <Sun className="text-yellow-400" /> : <Moon className="text-gray-400" />}
-        </button>
-   
-        <button className="relative p-2 rounded-full hover:bg-gray-700">
-          <Bell className="text-white" />
+
+        {/* Notifications */}
+        <div className="indicator">
+          <button className="btn btn-circle btn-ghost">
+            <Bell className="w-5 h-5" />
+          </button>
           {notifications > 0 && (
-            <span className="absolute top-0 right-0 bg-red-500 text-xs text-white rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="indicator-item badge badge-error text-[10px] h-4 w-4 p-0 left-1/2 top-3 ">
               {notifications}
             </span>
           )}
-        </button>
+        </div>
       </div>
     </div>
   );
