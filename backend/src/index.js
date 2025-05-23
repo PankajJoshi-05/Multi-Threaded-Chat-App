@@ -60,12 +60,14 @@ io.on("connection", socket => {
     userSocketIDs.set(user._id.toString(), socket.id);
 
     socket.on(NEW_MESSAGE, async (chatId, members, messages) => {
+        console.log("New message event", chatId, members, messages,chatId);
         const messageForRealTime = {
             content: messages,
+            type:"text",
             _id: uuid(),
             sender: {
                 _id: user._id,
-                name: user.name,
+                name: user.userName,
                 profile: user.profile
             },
             chat: chatId,

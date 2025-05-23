@@ -24,6 +24,7 @@ export const getChats=async(req,res)=>{
           name: chat.name,
           profile: chat.profile,
           groupChat:true,
+          members: chat.members,
           lastMessage: chat.lastMessage || null,
           updatedAt: chat.updatedAt,
         };
@@ -38,6 +39,7 @@ export const getChats=async(req,res)=>{
           name: otherUser?.userName,
           profile: otherUser?.profile,
           groupChat: false,
+          members: chat.members,
           lastMessage: chat.lastMessage || null,
           updatedAt: chat.updatedAt,
         };
@@ -66,7 +68,10 @@ export const createGroup=async(req,res)=>{
         groupChat:true}
     );
 
-    emitEvent(req,"ALERT",group.members,`Welcome to ${name}`);
+   emitEvent(req, ALERT, members, { 
+    members: members, 
+    message: `Welcome to ${name} group`
+});
     emitEvent(req,REFETCH_CHATS,members);
     res.status(201).json({
         message:"Group created successfully",
@@ -89,7 +94,9 @@ export const changeGroupName=async(req,res)=>{
         group.name = name;
         await group.save();
     
-        emitEvent(req,ALERT,group.members, `Group name changed to ${name}`);
+        emitEvent(req,ALERT,group.members,{ 
+          members: group.members,
+          message:`Group name changed to ${name}`});
 
         res.status(200).json({ message: "Group name changed successfully", group });
       } catch (error) {
@@ -141,8 +148,15 @@ export const addMembers=async(req,res)=>{
         group.members.push(...newMembers);
         await group.save();
     
-        const allUserNames=await newMembers.map(m=>m.userName).josin(",");
-        emitEvent(req,ALERT,group.members,`${allUserNames} added to ${group.name}`);
+        const allUserNames=await newMembers.map(m=>m.userName).join(",");
+        emitEvent(req,ALERT,members,{
+          members: newMembers,
+          message: `Welcome to ${group.name} group`
+        });
+        emitEvent(req,ALERT,group.members,{
+          members: group.members,
+          message:`${allUserNames} added to ${group.name}`
+        });
         res.status(200).json({ message: "Members added successfully", group });
       } catch (error) {
         res.status(500).json({ message: "Failed to add members", error: error.message });
@@ -169,7 +183,9 @@ export const removeMember=async(req,res)=>{
         await group.save();
     
         const removedUserName=await User.findOneById(memberId).select("userName");
-        emitEvent(req,ALERT,removedUserName,`You have been removed from ${group.name}`);
+        emitEvent(req,ALERT,removedUserName,{
+          members: removedUserName,
+          message:`You have been removed from ${group.name}`});
 
         res.status(200).json({ message: "Member removed successfully", group });
       } catch (error) {
@@ -412,7 +428,7 @@ export const sendVoiceMessage = async (req, res) => {
       ...messageForDB,
       sender:{
         _id:me._id,
-        name:me.userName,
+        userName:me.userName,
         profile:me.profile
       }
     }
@@ -440,7 +456,7 @@ export const getMessages=async(req,res)=>{
        Message.find({chat:chatId})
        .limit(limit)
        .skip(skip)
-       .sort({createdAt: -1})
+       .sort({createdAt:1})
        .populate("sender","userName profile")
        .lean(),
        Message.countDocuments({chat:chatId})

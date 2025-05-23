@@ -72,7 +72,6 @@ export const searchUser = async (req, res) => {
   }
 };
 
-
 export const sendFriendRequest=async(req,res)=>{
     try{
      const {receiverId}=req.body;
@@ -145,12 +144,14 @@ export const acceptFriendRequest=async(req,res)=>{
         })
      ]);
     emitEvent(req,REFETCH_CHATS,members);
+    emitEvent(req,"REFETCH_NEW_USERS",members);
       return res.status(200).json({
         status:true,
         message:"Friend Request Accepted",
         senderId:request.sender._id,
       })
     }catch(error){
+        console.log("Error in acceptFriendRequest", error);
         res.status(500).json({success:false,message:"Failed to accept request",error: error.message });
     }
 }
