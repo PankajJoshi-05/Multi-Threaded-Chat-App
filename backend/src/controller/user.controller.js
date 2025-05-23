@@ -5,7 +5,6 @@ import Request from "../models/request.model.js";
 import Chat from "../models/chat.model.js";
 import emitEvent from "../utils/emitEvent.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/events.js";
-import { profile } from "console";
 
 export const getProfile = async (req, res) => {
     const userId = req.userId;
@@ -78,7 +77,6 @@ export const sendFriendRequest=async(req,res)=>{
     try{
      const {receiverId}=req.body;
      if(!receiverId)return res.status(400).json({success:false,message:"Receiver id is required"});
-     console.log("userId in sendFriendRequest backend" ,receiverId);
      const request=await Request.findOne({
       $or: [
     {
@@ -91,14 +89,23 @@ export const sendFriendRequest=async(req,res)=>{
     }
   ]
 });
-   if(request)
-     return res.status(200).json({success:false,message:"Request already sent"});
-    
-     await Request.create({sender:req.userId,receiver:receiverId});
+   if(request){
+     return res.status(409).json({success:false,message:"Request already sent"});
+   }
+     const senderData=await User.findById(req.userId).select("userName profile");
+     const newRequest=await Request.create({sender:req.userId,receiver:receiverId});
+    console.log("New Request",newRequest);
+     emitEvent(req,NEW_REQUEST,[receiverId],{
+    _id: newRequest._id,
+    sender: {
+      _id: newRequest.sender._id,
+      name:senderData.userName,
+      profile:senderData.profile
+    },
+    createdAt: new Date()
+     });
 
-     emitEvent(req,NEW_REQUEST,[receiverId]);
-
-     return res.status(409).json({success:true,message:"Request sent successfully"});
+     return res.status(200).json({success:true,message:"Request sent successfully"});
     }catch(error){
         console.log("Error in sendFriendRequest", error);
         res.status(500).json({success:false,message:"Failed to send request",error: error.message });
@@ -147,6 +154,7 @@ export const acceptFriendRequest=async(req,res)=>{
         res.status(500).json({success:false,message:"Failed to accept request",error: error.message });
     }
 }
+
 export const getMynotifications=async(req,res)=>{
   try{
     const requests=await Request.find({receiver:req.userId}).populate("sender","userName profile");

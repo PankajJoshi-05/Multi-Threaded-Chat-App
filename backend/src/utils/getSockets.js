@@ -1,4 +1,6 @@
+import {userSocketIDs} from "../index.js";
 export const getSockets=(users=[])=>{
-    const sockets=users.map((user)=>{userSocketIds.get(user._id)});
-    return sockets
+     const sockets = users.map((user) => userSocketIDs.get(user.toString()));
+
+  return sockets;
 }

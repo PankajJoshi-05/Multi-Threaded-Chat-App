@@ -11,7 +11,7 @@ function EmailCodeVerification() {
   const inputRefs=useRef([]);
 
   const navigate=useNavigate();
-  const {error,isLoading,verifyEmail,resendVerificationCode}=useAuthStore();
+  const {isLoading,verifyEmail,resendVerificationCode}=useAuthStore();
 
   const handleSubmit=async(e)=>{
     e.preventDefault();

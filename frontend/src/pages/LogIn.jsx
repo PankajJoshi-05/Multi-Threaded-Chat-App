@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Eye, EyeOff } from "lucide-react"
 import { Link,useNavigate} from 'react-router-dom';
 import  {useAuthStore} from '../store/authStore';
+
 function LogIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [email,setEmail]=useState("");

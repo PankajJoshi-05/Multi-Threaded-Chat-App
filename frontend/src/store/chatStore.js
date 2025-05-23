@@ -4,6 +4,7 @@ const API_URL = 'http://localhost:3000/api/v1/chats';
 
 const useChatStore = create((set) => ({
   messages:[],
+  chats:null,
   selectedChat: null,
   isGroup: false,
   isMessagesLoading: false,
@@ -29,13 +30,14 @@ const useChatStore = create((set) => ({
       set({ error: err.message, isChatsLoading: false });
     }
   },
+
   fetchMessages:async(chatId)=>{
     set({ isMessagesLoading: true, error: null });
     try {
       const response = await axios.get(`${API_URL}/get-messages/${chatId}`, {
         withCredentials: true, 
       });
-
+     console.log("Messages Response", response.data);
       if (response.data.success) {
         set({ messages: response.data.messages, isMessagesLoading: false });
       } else {
@@ -86,6 +88,10 @@ const useChatStore = create((set) => ({
       return { success: false, message: err.response?.data?.message || err.message };
     }
   },
+
+  sendAttachments:async()=>{
+    
+  }
 }));
 
 export default useChatStore;

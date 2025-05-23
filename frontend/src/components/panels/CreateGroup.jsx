@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Check, Search } from "lucide-react";
 import Avatar from "../ui/Avatar";
 import useChatStore from "../../store/chatStore";
-
+import { toast } from "react-hot-toast";
 const CreateGroup = () => {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -31,7 +31,7 @@ const CreateGroup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedUsers.length < 1) {
-      alert("Please select at least 1 user to create a group.");
+      toast.error("Please select at least 1 user to create a group.");
       return;
     }
 
@@ -43,9 +43,9 @@ const CreateGroup = () => {
     if (result.success) {
       setGroupName("");
       setSelectedUsers([]);
-      alert("Group created successfully!");
+      toast.success("Group created successfully!");
     } else {
-      alert(result.message || "Failed to create group.");
+      toast.success(result.message || "Failed to create group.");
     }
   };
 

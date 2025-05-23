@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 import { useThemeStore } from "./store/themeStore";
+import { Toaster } from 'react-hot-toast';
 import { Loader } from "./components/Loader";
 const SignUp = lazy(() => import("./pages/SignUp"));
 const LogIn = lazy(() => import("./pages/LogIn"));
@@ -20,17 +21,25 @@ const CreateGroup = lazy(() => import("./components/panels/CreateGroup"));
 const Profile = lazy(() => import("./components/panels/Profile"));
 const Settings = lazy(() => import("./components/panels/Settings"));
 
+import useSocketStore from "./store/socketStore";
 function App() {
    const {checkAuth} =useAuthStore();
    const {theme}=useThemeStore();
+   const {connectSocket}=useSocketStore();
    console.log("theme",theme);
+
    useEffect(()=>{
      checkAuth();
-     console.log("checking Auth...");
    },[checkAuth])
-   
+
+   useEffect(() => {
+    if(checkAuth)
+      connectSocket();
+  }, [ connectSocket]);
+
   return (
     <div data-theme={theme} >
+      <Toaster />
     <BrowserRouter>
       <Suspense fallback={<Loader/>}>
       <Routes>

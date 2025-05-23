@@ -2,9 +2,25 @@ import React from 'react'
 import MessageInput from '../ui/MessageInput'
 import ChatHeader from '../ui/ChatHeader'
 import Message from '../chat/Message'
+import { useEffect } from 'react'
+import useChatStore from '../../store/chatStore'
+import { useParams } from 'react-router-dom'
 
 const ChatWindow = () => {
-  const messages=[];
+
+  const {id} = useParams();
+  const {fetchMessages, messages,isMessagesLoading} = useChatStore();
+  useEffect (()=>{
+      fetchMessages(id);
+  },[id]);
+  
+  if(isMessagesLoading){
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p>Loading...</p>
+      </div>
+    )
+  }
   return (
     <div className="relative h-full w-full bg-base-100 text-base-content flex flex-col overflow-hidden">
       <ChatHeader />
@@ -18,4 +34,4 @@ const ChatWindow = () => {
   )
 }
 
-export default ChatWindow
+export default ChatWindow;

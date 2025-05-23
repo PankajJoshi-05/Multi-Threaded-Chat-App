@@ -3,6 +3,8 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationEmail,sendWelcomeEmail,sendPasswordResetEmail,sendResetSuccessEmail} from "../utils/email.utils.js";
+import jwt from "jsonwebtoken";
+import { toNamespacedPath } from "path";
 
 export const signup = async (req, res) => {
     const { userName, email, password } = req.body;
@@ -191,7 +193,6 @@ export const resetPassword=async(req,res)=>{
        await user.save();
 
        sendResetSuccessEmail(user.email);
-
        res.status(200).json({success:true,message:"Password reset successsful"});
     }catch(error){
       console.log("Error in reset Password : ",error);
@@ -211,3 +212,25 @@ export const checkAuth=async(req,res)=>{
 		res.status(400).json({ success: false, message: error.message });
     }
 };
+
+export const socketAuthticator=async(err,socket,next)=>{
+  try{
+    if(err)  return next(new Error("Authentication error"));
+    const token=socket.request.cookies.jwt;
+    if(!token) {
+      return next(new Error("Unauthorized"));
+    }
+    const decoded=jwt.verify(token,process.env.JWT_SECRET);
+    
+    const user=await User.findById(decoded.userId).select("-password");
+
+    if(!user){
+      return next(new Error("Unauthorized"));
+    }
+    socket.request.user=user;
+    next();
+  }catch(error){
+    console.log("Error in socketAuthenticator ",error);
+      next(new Error("Unauthorized,login again"));
+  }
+  }

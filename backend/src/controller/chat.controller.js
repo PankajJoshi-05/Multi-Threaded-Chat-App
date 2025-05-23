@@ -72,6 +72,7 @@ export const createGroup=async(req,res)=>{
         message:"Group created successfully",
         groupData:group});
     }catch(error){
+      console.log("Error creating group",error);
         res.status(500).json({message:"Failed to create group",error:error.message});
     }
 }
@@ -450,6 +451,6 @@ export const getMessages=async(req,res)=>{
       messages,
       totalPages});
    }catch(error){
-     res.status(500).json({success:false,message:"Failed to get messages",error: error.message })
+     res.status(500).json({success:false,message:"Failed to get messages",error: error.message });
    }
 }
