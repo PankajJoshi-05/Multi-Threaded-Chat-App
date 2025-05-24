@@ -91,6 +91,7 @@ io.on("connection", socket => {
     })
 
     socket.on(START_TYPING, ({ members, chatId }) => {
+        console.log("start typing",{members,chatId});
         const membersSockets = getSockets(members);
         socket.to(membersSockets).emit(START_TYPING, { chatId });
     });
