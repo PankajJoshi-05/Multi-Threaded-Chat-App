@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Smile, Paperclip, Send, Mic, X, StopCircle } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
+import useChatStore from "../../store/chatStore";
 
 const MessageInput = () => {
   const [message, setMessage] = useState("");
@@ -16,17 +17,25 @@ const MessageInput = () => {
   const recordingTimerRef = useRef(null);
   const cancelRecordingRef = useRef(false);
 
+  const { selectedChat, sendMessage, sendAttachments, sendVoiceMessage } = useChatStore();
+
   const handleSend = () => {
     if (message.trim()) {
-      console.log("Text message:", message);
+      sendMessage(selectedChat._id, selectedChat.members, message);
       setMessage("");
     }
     if (selectedFiles.length > 0) {
-      selectedFiles.forEach((file) => console.log("Attached file:", file.name));
+      const formData = new FormData();
+      selectedFiles.forEach((file) => formData.append("files", file));
+      formData.append("chatId", selectedChat._id);
+      sendAttachments(formData);
       setSelectedFiles([]);
     }
     if (audioBlob) {
-      console.log("Audio message:", audioBlob);
+      const formData = new FormData();
+      formData.append("file", audioBlob, "voiceMessage.webm");
+      formData.append("chatId", selectedChat._id);
+      sendVoiceMessage(formData);
       setAudioBlob(null);
     }
   };
@@ -105,7 +114,7 @@ const MessageInput = () => {
   };
 
   return (
-    <div className="absolute fixed bottom-0 left-0 w-full p-3 border-t bg-base-100 z-10">
+    <div className="absolute  bottom-0 left-0 w-full p-3 border-t bg-base-100 z-10">
       {selectedFiles.length > 0 && (
         <div className="flex gap-2 flex-wrap mb-2">
           {selectedFiles.map((file, index) => (
@@ -194,6 +203,12 @@ const MessageInput = () => {
           placeholder="Type a message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
         />
 
         {(message.trim() || selectedFiles.length > 0 || audioBlob) ? (

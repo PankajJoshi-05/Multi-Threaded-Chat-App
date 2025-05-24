@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import useSocketStore from './socketStore';
+import toast from 'react-hot-toast';
 const API_URL = 'http://localhost:3000/api/v1/chats';
 
 const useChatStore = create((set) => ({
@@ -13,7 +15,9 @@ const useChatStore = create((set) => ({
   isAllUsersLoading: false,
   isGroupCreating: false,
   error: null,
-
+  totalPages: 1,
+currentPage: 1,
+isPaginationLoading: false,
   fetchChats: async () => {
     set({ isChatsLoading: true, error: null });
     try {
@@ -31,20 +35,30 @@ const useChatStore = create((set) => ({
     }
   },
 
-  fetchMessages:async(chatId)=>{
-    set({ isMessagesLoading: true, error: null });
+  fetchMessages:async(chatId,page=1)=>{
+    if (page > 1) set({ isPaginationLoading: true })
+else set({ isMessagesLoading: true })
     try {
-      const response = await axios.get(`${API_URL}/get-messages/${chatId}`, {
+      const response = await axios.get(`${API_URL}/get-messages/${chatId}?page=${page}`, {
         withCredentials: true, 
       });
      console.log("Messages Response", response.data);
       if (response.data.success) {
-        set({ messages: response.data.messages, isMessagesLoading: false });
+       set((state) => ({
+        messages: page === 1
+          ? response.data.messages
+          : [...response.data.messages,...state.messages], 
+        totalPages: response.data.totalPages,
+        currentPage: page,
+        isMessagesLoading: false,
+        isPaginationLoading: false,
+      }));
+      console.log(response.data);
       } else {
-        set({ error: response.data.message || 'Failed to fetch messages', isMessagesLoading: false });
+        set({ error: response.data.message || 'Failed to fetch messages', isMessagesLoading: false,isPaginationLoading:false });
       }
     } catch (err) {
-      set({ error: err.message, isMessagesLoading: false });
+      set({ error: err.message, isMessagesLoading: false,isPaginationLoading });
     }
   },
 
@@ -89,8 +103,47 @@ const useChatStore = create((set) => ({
     }
   },
 
-  sendAttachments:async()=>{
-    
+  addMessage:(newMessage)=>{
+    console.log("newMessage",newMessage);
+    set((state)=>({
+      messages:[...state.messages,newMessage]
+    }))
+  },
+
+  sendAttachments:async(formData)=>{
+    try{
+    const response = await axios.put(`${API_URL}/send-attachments`,formData,{
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      withCredentials: true,
+    });
+    console.log("Attachments Response", response.data);
+    toast.success(response.data.message);
+  }catch(err){
+    console.log("Error in sending attachments", err);
+    toast.error(err.response?.data?.message || err.message);
+  }
+  },
+
+  sendVoiceMessage:async(formData)=>{
+    try{
+      const response= await axios.put(`${API_URL}//send-voice-message`,formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true,
+      });
+      toast.success(response.data.message);
+    }catch(error){
+      console.log("Error in sending voice message", error);
+      toast.error(error.response?.data?.message || error.message);
+    }
+  } ,
+  sendMessage:async(chatId,members,message)=>{
+     const memberIds = members.map(member => member._id);
+     const socket = useSocketStore.getState().socket;
+     socket.emit("NEW_MESSAGE",chatId,memberIds,message);
   }
 }));
 

@@ -58,7 +58,7 @@ const UserList = () => {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full overflow-hidden">
 
-                  <Avatar src={user.avatar} alt={user.userName} />
+                  <Avatar src={user.profile} alt={user.userName} />
                   </div>
                   <span className="font-medium">{user.userName}</span>
                 </div>

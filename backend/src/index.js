@@ -60,7 +60,6 @@ io.on("connection", socket => {
     userSocketIDs.set(user._id.toString(), socket.id);
 
     socket.on(NEW_MESSAGE, async (chatId, members, messages) => {
-        console.log("New message event", chatId, members, messages,chatId);
         const messageForRealTime = {
             content: messages,
             type:"text",
@@ -71,7 +70,7 @@ io.on("connection", socket => {
                 profile: user.profile
             },
             chat: chatId,
-            createdAt: Date.now()
+            updatedAt: Date.now()
         }
         const messageForDB = {
             content: messages,
@@ -79,10 +78,7 @@ io.on("connection", socket => {
             chat: chatId
         }
         const memberSocket = getSockets(members);
-
-        io.to(memberSocket).emit(NEW_MESSAGE, {
-            chatId, message: messageForRealTime
-        });
+        io.to(memberSocket).emit(NEW_MESSAGE, messageForRealTime);
 
         io.to(memberSocket).emit(NEW_MESSAGE_ALERT, { chatId });
 
@@ -92,7 +88,6 @@ io.on("connection", socket => {
         catch (error) {
             console.log("Error in saving message to DB", error);
         }
-        console.log("New message", messageForRealTime);
     })
 
     socket.on(START_TYPING, ({ members, chatId }) => {

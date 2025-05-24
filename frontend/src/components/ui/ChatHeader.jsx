@@ -1,27 +1,36 @@
 import React from 'react';
 import Avatar from './Avatar';
-
+import  useChatStore from '../../store/chatStore';
+import useSocketStore from '../../store/socketStore';
+import { useAuthStore } from '../../store/authStore'
 const ChatHeader = () => {
-  const chatHeader = {
-    name: "John Doe",
-    status: "online", // "online" or "offline"
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    lastSeen: "last seen today at 12:45 PM",
-  };
+  const {selectedChat} = useChatStore();
+  const {onlineUsers} = useSocketStore();
+   const { user } = useAuthStore();
+
+  const otherUser = selectedChat?.members?.find(m => m._id !== user._id);
+  const isOnline = !selectedChat?.groupChat && otherUser && onlineUsers.has(otherUser._id);
+
+  const onlineMembersCount = selectedChat?.groupChat
+    ? selectedChat.members.filter(m => m._id !== user._id && onlineUsers.has(m._id)).length
+    : 0;
 
   return (
-    <div className="w-full bg-base-100 shadow-sm p-3 absolute top-0 z-10">
+    <div className="w-full bg-base-100 border-b border-base-300 shadow-sm p-3 absolute top-0 z-10">
       <div className="flex items-center gap-3">
         <div className="relative w-12 h-12 rounded-full overflow-hidden">
-          <Avatar src={chatHeader.avatar} alt={chatHeader.name} />
-          {chatHeader.status === "online" && (
+          <Avatar src={selectedChat.profile} alt={selectedChat.name} />
+          {!selectedChat.groupChat && isOnline && (
             <div className="absolute bottom-1 right-1 w-3 h-3 bg-success rounded-full border-2 border-base-100"></div>
           )}
         </div>
         <div>
-          <p className="font-semibold text-base-content">{chatHeader.name}</p>
+          <p className="font-semibold text-base-content">{selectedChat.name}</p>
           <p className="text-xs text-base-content opacity-60">
-            {chatHeader.status === "online" ? "Online" : chatHeader.lastSeen}
+            {selectedChat?.groupChat 
+              ? `${onlineMembersCount}/${selectedChat.members.length} online` 
+              : isOnline ? "Online" : "Offline"
+            }
           </p>
         </div>
       </div>

@@ -50,7 +50,7 @@ const ChatList = () => {
         filterChats.map((chat) => (
           <div key={chat._id}
             onClick={()=>{
-              setSelectedChat(chat._id);
+              setSelectedChat(chat);
               navigate(`/chat/${chat._id}`)
             }}
             className='cursor-pointer'

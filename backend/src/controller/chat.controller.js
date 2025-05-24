@@ -456,7 +456,7 @@ export const getMessages=async(req,res)=>{
        Message.find({chat:chatId})
        .limit(limit)
        .skip(skip)
-       .sort({createdAt:1})
+       .sort({createdAt:-1})
        .populate("sender","userName profile")
        .lean(),
        Message.countDocuments({chat:chatId})
@@ -464,7 +464,7 @@ export const getMessages=async(req,res)=>{
      const totalPages=Math.ceil(totalMessagesCount/limit);
      res.status(200).json({
       success:true,
-      messages,
+      messages:messages.reverse(),
       totalPages});
    }catch(error){
      res.status(500).json({success:false,message:"Failed to get messages",error: error.message });

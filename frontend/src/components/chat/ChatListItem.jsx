@@ -3,7 +3,7 @@ import Avatar from '../ui/Avatar';
 
 const ChatListItem = ({ name, profilePic, lastMessage, time }) => {
   return (
-    <div className="flex items-center bg-base-200 gap-3 p-3 hover:bg-base-300 rounded-lg cursor-pointer transition-colors mt-2">
+    <div className="flex items-center bg-base-200 gap-3 p-3 hover:bg-base-300 rounded-lg cursor-pointer transition-colors mt-2 border-b border-base-100">
       <div className="flex items-center justify-center w-10 h-10 bg-base-100 rounded-full overflow-hidden">
         <Avatar src={profilePic} alt={name} />
       </div>

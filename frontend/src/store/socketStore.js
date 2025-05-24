@@ -3,6 +3,9 @@ import { create } from 'zustand';
 import { io } from 'socket.io-client';
 import { useUserStore } from './userStore';
 import useChatStore from './chatStore';
+import { useAuthStore } from './authStore';
+import {toast} from "react-hot-toast";
+
 const useSocketStore = create((set, get) => {
     let socket = null;
 
@@ -34,18 +37,50 @@ const useSocketStore = create((set, get) => {
                 socket.on('ONLINE_USERS', (users) => {
                     set({ onlineUsers: new Set(users) });
                 });
-                
-                socket.on('NEW_REQUEST',(newNotification)=>{
+
+                socket.on('NEW_REQUEST', (newNotification) => {
                     console.log('Received notification:', newNotification);
-                    const audio=new Audio('/sounds/newnotification.mp3');
-                    console.log("Audio",audio);
-                    audio.volume = 0.3; 
+                    const audio = new Audio('/sounds/newnotification.mp3');
+                    console.log("Audio", audio);
+                    audio.volume = 0.3;
                     audio.play().catch(e => console.log("Sound error:", e));
                     useUserStore.getState().addNotification(newNotification);
                 });
 
-                socket.on('REFETCH_CHATS',()=>{
-                     useChatStore.getState().fetchChats();
+                socket.on('REFETCH_CHATS', () => {
+                    useChatStore.getState().fetchChats();
+                });
+                socket.on("REFETCH_NEW_USERS", () => {
+                    console.log("Refetching new users");
+                    useUserStore.getState().fetchNewUsers();
+                })
+                socket.on('NEW_MESSAGE', (newMessage)=> {
+                    const audio = new Audio('/sounds/notification.wav');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log("Sound error:", e));
+                    useChatStore.getState().addMessage(newMessage);
+                });
+                socket.on('NEW_ATTACHMENT',(newAttachment) => {
+                      const audio = new Audio('/sounds/notification.wav');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log("Sound error:", e));
+                    useChatStore.getState().addMessage(newAttachment);
+                })
+                socket.on("ALERT", (data) => {
+                    const {members,message}=data;
+                    console.log("Alert received:" ,members, message);
+                    const currentUserId = useAuthStore.getState().user?._id;
+                    if (members.includes(currentUserId)) {
+                        const audio = new Audio('/sounds/notification.wav');
+                        audio.volume = 0.3;
+                        audio.play().catch(e => console.log("Sound error:", e));
+
+                        toast.success(message, {
+                            duration: 5000,
+                            position: 'top-center'
+                        });
+                    }
+
                 });
                 set({ socket });
             }
@@ -56,11 +91,6 @@ const useSocketStore = create((set, get) => {
                 socket = null;
                 set({ socket: null });
                 console.log("Socket manually disconnected");
-            }
-        },
-        sendMessage: (chatId, members, message) => {
-            if (socket) {
-                socket.emit('NEW_MESSAGE', chatId, members, message);
             }
         },
         startTyping: (members, chatId) => {

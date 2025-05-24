@@ -1,9 +1,11 @@
 import React from 'react';
 import { Check, CheckCheck, Clock, FileText, FileAudio } from 'lucide-react';
-import Avatar from '../ui/Avatar';
-
+import Avatar from '../ui/Avatar.jsx';
+import { useAuthStore } from '../../store/authStore';
+import {formatChatTime} from "../../constants/formatChatTime.js"
 const Message = ({ message }) => {
-  const isCurrentUser = message.sender === "currentUser";
+  const{user} = useAuthStore();
+  const isCurrentUser = message.sender._id === user._id;
 
   const renderMessageContent = () => {
     switch (message.type) {
@@ -12,7 +14,7 @@ const Message = ({ message }) => {
           <div className="rounded-md overflow-hidden mt-1">
             <img
               src={message.content}
-              alt="Sent image"
+              alt="image"
               className="max-w-full max-h-64 object-cover cursor-pointer"
               onClick={() => window.open(message.content, '_blank')}
             />
@@ -46,41 +48,29 @@ const Message = ({ message }) => {
         <div className="flex items-start gap-2">
           <div className="flex-shrink-0 h-12 w-12 rounded-full overflow-hidden">
             <Avatar
-              src={message.avatar}
-              alt={message.senderName || "User"}
+              src={message.sender.profile }
+              alt={message.sender.userName}
               className="w-10 h-10 rounded-full object-cover"
             />
           </div>
-          <p className="text-sm font-medium text-base-content">{message.senderName || "User"}</p>
+          <p className="text-sm font-medium text-base-content">{message.sender.userName}</p>
           <div>
             <div className="bg-base-100 text-base-content rounded-lg rounded-tl-none px-4 py-2 shadow-sm">
               {renderMessageContent()}
               <div className="flex items-center justify-end mt-1 space-x-1 text-sm text-base-content opacity-70">
-                <span className="text-xs">{message.time}</span>
+                <span className="text-xs">{formatChatTime(message.updatedAt)}</span>
               </div>
             </div>
           </div>
         </div>
       ) : (
         <div className="flex flex-col items-end">
-          <div className="flex items-center gap-2">
-            <div className="flex-shrink-0 h-12 w-12 rounded-full overflow-hidden">
-              <Avatar src={message.avatar} alt="You" />
-            </div>
-            <p className="text-sm font-medium text-base-content">You</p>
-          </div>
           <div className="flex items-end gap-2">
             <div className="bg-primary text-primary-content rounded-lg rounded-br-none px-4 py-2">
+               <p>You</p>
               {renderMessageContent()}
               <div className="flex items-center justify-end mt-1 space-x-1 text-sm opacity-80">
-                <span className="text-xs">{message.time}</span>
-                {message.status === "read" ? (
-                  <CheckCheck size={14} className="ml-1" />
-                ) : message.status === "delivered" ? (
-                  <Check size={14} className="ml-1" />
-                ) : (
-                  <Clock size={14} className="ml-1 animate-pulse" />
-                )}
+                <span className="text-xs">{formatChatTime(message.updatedAt)}</span>
               </div>
             </div>
           </div>
