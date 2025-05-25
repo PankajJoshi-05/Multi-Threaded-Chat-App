@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Check, Search } from "lucide-react";
 import Avatar from "../ui/Avatar";
 import useChatStore from "../../store/chatStore";
@@ -77,23 +77,26 @@ const CreateGroup = () => {
           />
         </div>
 
-        <div className="mb-3 flex items-center gap-2">
-          <Search className="w-4 h-4 text-base-content" />
-          <input
-            type="text"
-            className="input input-sm input-bordered flex-1"
-            placeholder="Search users"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="mb-3 overflow-hidden">
+          <label className="input input-sm input-bordered flex items-center gap-2">
+            <Search className="w-4 h-4 text-base-content" />
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search users"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </label>
         </div>
 
+
         <div className="flex-1 overflow-y-auto mt-1 space-y-3 pr-1">
-          {isAllUsersLoading?(
+          {isAllUsersLoading ? (
             <div className="flex items-center justify-center h-full">
               <p>Loading...</p>
             </div>
-          ):filteredUsers.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <p className="text-center text-secondary">No users found.</p>
           ) : (
             filteredUsers.map((user) => {
@@ -102,11 +105,10 @@ const CreateGroup = () => {
                 <div
                   key={user._id}
                   onClick={() => toggleUser(user._id)}
-                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors shadow-sm ${
-                    selected
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors shadow-sm ${selected
                       ? "bg-primary text-primary-content"
                       : "bg-base-200 hover:bg-base-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 border-2 overflow-hidden rounded-full">
