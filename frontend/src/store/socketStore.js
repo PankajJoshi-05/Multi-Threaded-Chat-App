@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 import { useUserStore } from './userStore';
 import useChatStore from './chatStore';
 import { useAuthStore } from './authStore';
-import {toast} from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 const useSocketStore = create((set, get) => {
     let socket = null;
@@ -12,6 +12,7 @@ const useSocketStore = create((set, get) => {
     return {
         socket,
         onlineUsers: new Set(),
+        typingStatus: {},
         connectSocket: () => {
             if (!socket) {
                 socket = io("http://localhost:3000", {
@@ -54,21 +55,22 @@ const useSocketStore = create((set, get) => {
                     console.log("Refetching new users");
                     useUserStore.getState().fetchNewUsers();
                 })
-                socket.on('NEW_MESSAGE', (newMessage)=> {
+                socket.on('NEW_MESSAGE', (newMessage) => {
                     const audio = new Audio('/sounds/notification.wav');
                     audio.volume = 0.3;
                     audio.play().catch(e => console.log("Sound error:", e));
                     useChatStore.getState().addMessage(newMessage);
                 });
-                socket.on('NEW_ATTACHMENT',(newAttachment) => {
-                      const audio = new Audio('/sounds/notification.wav');
+                socket.on('NEW_ATTACHMENT', (newAttachment) => {
+                    console.log("new Attcahment",newAttachment);
+                    const audio = new Audio('/sounds/notification.wav');
                     audio.volume = 0.3;
                     audio.play().catch(e => console.log("Sound error:", e));
                     useChatStore.getState().addMessage(newAttachment);
                 })
                 socket.on("ALERT", (data) => {
-                    const {members,message}=data;
-                    console.log("Alert received:" ,members, message);
+                    const { members, message } = data;
+                    console.log("Alert received:", members, message);
                     const currentUserId = useAuthStore.getState().user?._id;
                     if (members.includes(currentUserId)) {
                         const audio = new Audio('/sounds/notification.wav');
@@ -82,6 +84,18 @@ const useSocketStore = create((set, get) => {
                     }
 
                 });
+                socket.on("START_TYPING", ({ chatId }) => {
+                    set((state) => ({
+                        typingStatus: { ...state.typingStatus, [chatId]: true }
+                    }));
+                });
+
+                socket.on("STOP_TYPING", ({ chatId }) => {
+                    set((state) => ({
+                        typingStatus: { ...state.typingStatus, [chatId]: false }
+                    }));
+                });
+
                 set({ socket });
             }
         },
@@ -95,7 +109,7 @@ const useSocketStore = create((set, get) => {
         },
         startTyping: (members, chatId) => {
             if (socket) {
-                socket.emit('START_TYPING', { members, chatId });
+                socket.emit("START_TYPING", { members, chatId });
             }
         },
         stopTyping: (members, chatId) => {
