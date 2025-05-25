@@ -17,6 +17,7 @@ import { corsOptions } from "././utils/corsOptions.js";
 import {
   CHAT_JOINED,
   CHAT_LEAVED,
+  REFETCH_CHATS,
   NEW_MESSAGE,
   NEW_MESSAGE_ALERT,
   ONLINE_USERS,
@@ -80,13 +81,14 @@ io.on("connection", socket => {
         }
         const memberSocket = getSockets(members);
         io.to(memberSocket).emit(NEW_MESSAGE, messageForRealTime);
-
         io.to(memberSocket).emit(NEW_MESSAGE_ALERT, { chatId });
 
         try {
-            const chat=Chat.findById(chatId);
+            const chat=await Chat.findById(chatId);
             chat.lastMessage=messages;
             chat.updatedAt=Date.now();
+            await chat.save();
+            io.to(memberSocket).emit(REFETCH_CHATS);
             await Message.create(messageForDB);
         }
         catch (error) {

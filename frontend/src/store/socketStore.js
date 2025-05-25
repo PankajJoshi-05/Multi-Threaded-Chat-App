@@ -55,14 +55,24 @@ const useSocketStore = create((set, get) => {
                     console.log("Refetching new users");
                     useUserStore.getState().fetchNewUsers();
                 })
+                socket.on('NEW_MESSAGE_ALERT', ({ chatId }) => {
+                    const { selectedChat } = useChatStore.getState();
+                    if (!selectedChat || selectedChat._id !== chatId) {
+                        useChatStore.getState().incrementUnread(chatId);
+                    }
+                });
                 socket.on('NEW_MESSAGE', (newMessage) => {
+                    const { selectedChat } = useChatStore.getState();
+                    if (selectedChat && selectedChat._id === newMessage.chat) {
+                        useChatStore.getState().resetUnread(newMessage.chat);
+                    }
                     const audio = new Audio('/sounds/notification.wav');
                     audio.volume = 0.3;
                     audio.play().catch(e => console.log("Sound error:", e));
                     useChatStore.getState().addMessage(newMessage);
                 });
                 socket.on('NEW_ATTACHMENT', (newAttachment) => {
-                    console.log("new Attcahment",newAttachment);
+                    console.log("new Attcahment", newAttachment);
                     const audio = new Audio('/sounds/notification.wav');
                     audio.volume = 0.3;
                     audio.play().catch(e => console.log("Sound error:", e));

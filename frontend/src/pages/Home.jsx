@@ -11,13 +11,14 @@ import useIsMobile from '../hooks/useIsMobile'
 const Home = () => {
   const location=useLocation();
   const isMainPannelShown=location.pathname === '/' || location.pathname==='/create-group' || location.pathname==='/search-friend'|| location.pathname.startsWith('/chat/');
-   const {selectedChat,setSelectedChat,chats}=useChatStore();
+   const {selectedChat,setSelectedChat,chats,resetUnread}=useChatStore();
    const {id}=useParams();
   useEffect(() => { 
     if (id && chats?.length > 0) {
     const chat = chats.find(chat => chat._id === id);
     if (chat) {
       setSelectedChat(chat);
+      resetUnread(selectedChat._id);
     } else {
       console.error("Chat not found for ID:", id);
     }

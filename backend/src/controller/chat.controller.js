@@ -401,12 +401,12 @@ export const sendAttachments = async (req, res) => {
         type
       });
       messages.push(newMessage);
-
       emitEvent(req, NEW_ATTACHMENT, chat.members, messageForRealTime,
       );
-        chat.lastMessage =type;
-        chat.updatedAt = new Date();
-        await chat.save();
+      chat.lastMessage =type;
+      chat.updatedAt = new Date();
+      await chat.save();
+      emitEvent(req,REFETCH_CHATS,chat.members);
       emitEvent(req, NEW_MESSAGE_ALERT, chat.members, {
         chatId,
         sender: me._id
@@ -474,7 +474,7 @@ export const sendVoiceMessage = async (req, res) => {
 
     emitEvent(req, NEW_ATTACHMENT, chat.members, messageForRealTime);
     emitEvent(req, NEW_MESSAGE_ALERT, chat.members, { chatId });
-
+    emitEvent(req,REFETCH_CHATS,chat.members);
     res.status(201).json({ success: true, message: "Voice message sent successfully", data: message });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to send voice message", error: error.message });

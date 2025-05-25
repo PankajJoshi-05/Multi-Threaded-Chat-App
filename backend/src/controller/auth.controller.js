@@ -12,12 +12,20 @@ export const signup = async (req, res) => {
         if (!userName || !email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
+        email = email.toLowerCase();
         //check for the existing user
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ success: false, message: "Email already exists." });
         }
-
+        
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long and include 1 uppercase letter, 1 number, and 1 special character."
+            });
+        }
         //encrypt the password
         const hashedPassword = await bcrypt.hash(password, 10);
 

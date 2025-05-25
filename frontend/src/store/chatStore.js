@@ -1,10 +1,13 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import useSocketStore from './socketStore';
 import toast from 'react-hot-toast';
 const API_URL = 'http://localhost:3000/api/v1/chats';
 
-const useChatStore = create((set,get) => ({
+const useChatStore = create(
+   persist(
+  (set,get) => ({
   messages:[],
   chats:null,
   selectedChat: null,
@@ -18,6 +21,7 @@ const useChatStore = create((set,get) => ({
   totalPages: 1,
 currentPage: 1,
 isPaginationLoading: false,
+unreadCounts: {}, 
   fetchChats: async () => {
     set({ isChatsLoading: true, error: null });
     try {
@@ -246,7 +250,27 @@ else set({ isMessagesLoading: true })
       console.log("Error in deleting group", err);
       toast.error(err.response?.data?.message || err.message);
     }
-  }
-}));
+  },
+   incrementUnread: (chatId) => set((state) => ({
+    unreadCounts: {
+      ...state.unreadCounts,
+      [chatId]: (state.unreadCounts[chatId] || 0) + 1
+    }
+  })),
+  
+  resetUnread: (chatId) => set((state) => ({
+    unreadCounts: {
+      ...state.unreadCounts,
+      [chatId]: 0
+    }
+  })),
+  
+  clearAllUnread: () => set({ unreadCounts: {} }),
+}),{
+      name: 'chat-storage',
+      partialize: (state) => ({ unreadCounts: state.unreadCounts }),
+    }
+  )
+);
 
 export default useChatStore;

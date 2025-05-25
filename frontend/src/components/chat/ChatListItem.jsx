@@ -1,7 +1,7 @@
 import React from 'react';
 import Avatar from '../ui/Avatar';
 
-const ChatListItem = ({ name, profilePic, lastMessage, time }) => {
+const ChatListItem = ({ name, profilePic, lastMessage, time,unreadCount}) => {
   return (
     <div className="flex items-center bg-base-200 gap-3 p-3 hover:bg-base-300 rounded-lg cursor-pointer transition-colors mt-2 border-b border-base-100">
       <div className="flex items-center justify-center w-10 h-10 bg-base-100 rounded-full overflow-hidden">
@@ -16,6 +16,7 @@ const ChatListItem = ({ name, profilePic, lastMessage, time }) => {
         
         <div className="flex justify-between items-center gap-2">
           <p className="text-sm text-base-content opacity-70 truncate">{lastMessage}</p>
+          {unreadCount > 0 && <span className="text-primary font-semibold text-md">{`${unreadCount} New Messages`}</span>}
         </div>
       </div>
     </div>
