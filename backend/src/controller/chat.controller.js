@@ -13,7 +13,7 @@ export const getChats = async (req, res) => {
   try {
     const chats = await Chat.find({ members: req.userId })
       .populate("members", "userName profile")
-      .populate("latestMessage")
+      .populate("lastMessage")
       .sort({ updatedAt: -1 })
       .lean();
 
@@ -24,8 +24,10 @@ export const getChats = async (req, res) => {
           _id: chat._id,
           name: chat.name,
           profile: chat.profile,
+          bio: chat.bio,
           groupChat: true,
           members: chat.members,
+          creator: chat.creator,
           lastMessage: chat.lastMessage || null,
           updatedAt: chat.updatedAt,
         };
@@ -64,9 +66,11 @@ export const createGroup = async (req, res) => {
     const group = await Chat.create({
       name,
       profile: "",
+      bio: "",
       creator: req.userId,
       members: [...members, req.userId],
-      groupChat: true
+      groupChat: true,
+      lastMessage:"",
     }
     );
 
@@ -113,7 +117,7 @@ export const changeGroupProfile = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "Group profile is required" });
 
-    const chatId = req.params.id;
+    const { chatId } = req.body;
 
     const group = await validateGroup(chatId, req.userId);
 
@@ -132,6 +136,29 @@ export const changeGroupProfile = async (req, res) => {
     res.status(200).json({ message: "Group profile changed successfully", group });
   } catch (error) {
     res.status(500).json({ message: "Failed to change group profile", error: error.message });
+  }
+}
+
+//update groupBio
+export const changeGroupBio = async (req, res) => {
+  try {
+    const { chatId, bio } = req.body;
+    if (!bio) return res.status(400).json({ message: "Group bio is required" });
+    if (!chatId) return res.status(400).json({ message: "Chat ID is required" });
+
+    const group = await validateGroup(chatId, req.userId);
+
+    group.bio = bio;
+    await group.save();
+
+    emitEvent(req, ALERT, group.members, {
+      members: group.members,
+      message: `Group bio changed to ${bio}`
+    });
+
+    res.status(200).json({ message: "Group bio changed successfully", group });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to change group bio", error: error.message });
   }
 }
 
@@ -159,7 +186,7 @@ export const addMembers = async (req, res) => {
     });
     emitEvent(req, ALERT, group.members, {
       members: group.members,
-      message: `${allUserNames} added to ${group.name}`
+      message: `$New members added to ${group.name}`
     });
     res.status(200).json({ message: "Members added successfully", group });
   } catch (error) {
@@ -186,9 +213,8 @@ export const removeMember = async (req, res) => {
 
     await group.save();
 
-    const removedUserName = await User.findOneById(memberId).select("userName");
-    emitEvent(req, ALERT, removedUserName, {
-      members: removedUserName,
+    const removedUserName = await User.findById(memberId).select("userName");
+    emitEvent(req, ALERT, [memberId], {
       message: `You have been removed from ${group.name}`
     });
 
@@ -201,12 +227,11 @@ export const removeMember = async (req, res) => {
 // get groupMembers
 export const getGroupMembers = async (req, res) => {
   try {
-    const { chatId } = req.body;
-
+    const { chatId } = req.query;
     if (!chatId) {
       return res.status(400).json({ message: "Chat ID is required" });
     }
-    const group = await Chat.findById(chatId).populate("members", "name profile");
+    const group = await Chat.findById(chatId).populate("members", "userName profile");
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
@@ -241,6 +266,7 @@ export const leaveGroup = async (req, res) => {
   try {
     const chatId = req.params.id;
     const { newCreator } = req.body;
+    console.log(newCreator);
     const chat = await Chat.findById(chatId);
     if (!chat) {
       return res.status(404).json({ message: "Chat not found" });
@@ -289,7 +315,7 @@ export const leaveGroup = async (req, res) => {
 
     await chat.save();
 
-    const leftUserName = await User.findOneById(req.userId).select("userName");
+    const leftUserName = await User.findById(req.userId).select("userName");
     emitEvent(req, ALERT, chat.members, `User ${leftUserName} has left the group`);
     res.status(200).json({ message: "You have left the group successfully", chat });
   } catch (error) {
@@ -297,16 +323,16 @@ export const leaveGroup = async (req, res) => {
   }
 }
 
-//delete the group
-export const deleteGroup = async (req, res) => {
+//delete the group/Chat
+export const deleteChat = async (req, res) => {
   const chatId = req.params.id;
   try {
-    const group = await validateGroup(chatId, req.userId);
+    if (!chatId) throw new Error("Chat ID is required");
     await Chat.deleteOne({ _id: chatId });
-    res.status(200).json({ message: "Group deleted successfully" });
+    res.status(200).json({ message: "chat/group deleted successfully" });
   } catch (error) {
-    console.log("Error deleting group", error);
-    res.status(500).json({ message: "Failed to delete group", error: error.message });
+    console.log("Error deleting chat/group", error);
+    res.status(500).json({ message: "Failed to delete chat/group", error: error.message });
   }
 }
 
@@ -344,7 +370,6 @@ export const sendAttachments = async (req, res) => {
     }
 
     const messages = [];
-    let lastMessageType = "file";
     for (const file of files) {
       let type = "file";
       if (file.mimetype.startsWith("image")) type = "image";
@@ -358,7 +383,7 @@ export const sendAttachments = async (req, res) => {
       fs.unlinkSync(file.path);
 
       const messageForRealTime = {
-        content:result.secure_url,
+        content: result.secure_url,
         type,
         _id: uuid(),
         sender: {
@@ -367,9 +392,9 @@ export const sendAttachments = async (req, res) => {
           profile: me.profile
         },
         chatId,
-        updatedAt:Date.now()
+        updatedAt: Date.now()
       };
-      const newMessage=await Message.create({
+      const newMessage = await Message.create({
         chat: chatId,
         sender: me._id,
         content: result.secure_url,
@@ -377,19 +402,16 @@ export const sendAttachments = async (req, res) => {
       });
       messages.push(newMessage);
 
-      emitEvent(req, NEW_ATTACHMENT, chat.members,messageForRealTime,
+      emitEvent(req, NEW_ATTACHMENT, chat.members, messageForRealTime,
       );
-
-      lastMessageType = type;
+        chat.lastMessage =type;
+        chat.updatedAt = new Date();
+        await chat.save();
       emitEvent(req, NEW_MESSAGE_ALERT, chat.members, {
         chatId,
         sender: me._id
       });
     }
-
-    chat.lastMessage = lastMessageType;
-    chat.updatedAt = new Date();
-    await chat.save();
     return res.status(200).json({
       success: true,
       message: "Attachment sent Successfully",
@@ -431,7 +453,7 @@ export const sendVoiceMessage = async (req, res) => {
         userName: me.userName,
         profile: me.profile
       },
-      chat:chatId,
+      chat: chatId,
       updatedAt: Date.now()
     }
 
@@ -442,16 +464,18 @@ export const sendVoiceMessage = async (req, res) => {
       content: result.secure_url,
       timestamp: Date.now(),
     };
-
+    chat.lastMessage="Voice Message";
+    chat.updatedAt=new Date();
+    await chat.save();
     const message = await Message.create(messageForDB);
     chat.lastMessage = "Voice Message";
     chat.updatedAt = new Date();
     await chat.save();
 
-    emitEvent(req, NEW_ATTACHMENT, chat.members,messageForRealTime );
+    emitEvent(req, NEW_ATTACHMENT, chat.members, messageForRealTime);
     emitEvent(req, NEW_MESSAGE_ALERT, chat.members, { chatId });
 
-    res.status(201).json({ success: true, message: "Voice message sent successfully", data:message });
+    res.status(201).json({ success: true, message: "Voice message sent successfully", data: message });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to send voice message", error: error.message });
   }
@@ -481,4 +505,4 @@ export const getMessages = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to get messages", error: error.message });
   }
-}
+};
