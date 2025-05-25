@@ -11,6 +11,7 @@ import userRoutes from "./routes/user.routes.js";
 import userChats from "./routes/chat.routes.js";
 import { getSockets } from "././utils/getSockets.js";
 import Message from "./models/message.model.js";
+import Chat from "./models/chat.model.js";
 import { socketAuthticator } from "./controller/auth.controller.js";
 import { corsOptions } from "././utils/corsOptions.js";
 import {
@@ -83,6 +84,9 @@ io.on("connection", socket => {
         io.to(memberSocket).emit(NEW_MESSAGE_ALERT, { chatId });
 
         try {
+            const chat=Chat.findById(chatId);
+            chat.lastMessage=messages;
+            chat.updatedAt=Date.now();
             await Message.create(messageForDB);
         }
         catch (error) {
@@ -119,7 +123,6 @@ io.on("connection", socket => {
         userSocketIDs.delete(user._id.toString());
         console.log("user disconnected")
     });
-
 })
 
 const PORT = process.env.PORT;
