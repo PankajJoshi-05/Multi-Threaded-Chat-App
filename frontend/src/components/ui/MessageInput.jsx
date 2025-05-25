@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Smile, Paperclip, Send, Mic, X, StopCircle } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import useChatStore from "../../store/chatStore";
-
+import useSocketStore from "../../store/socketStore";
 const MessageInput = () => {
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -18,6 +18,31 @@ const MessageInput = () => {
   const cancelRecordingRef = useRef(false);
 
   const { selectedChat, sendMessage, sendAttachments, sendVoiceMessage } = useChatStore();
+
+   const typingTimeout = useRef(null);
+  const { startTyping, stopTyping } = useSocketStore();
+
+   const handleTyping = (e) => {
+    setMessage(e.target.value);
+    
+    if (!typingTimeout.current && selectedChat) {
+      startTyping(selectedChat.members.map(m => m._id), selectedChat._id);
+    }
+    
+    clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => {
+      if (selectedChat) {
+        stopTyping(selectedChat.members.map(m => m._id), selectedChat._id);
+      }
+      typingTimeout.current = null;
+    }, 3000);
+  };
+
+    useEffect(() => {
+    return () => {
+      clearTimeout(typingTimeout.current);
+    };
+  }, []);
 
   const handleSend = () => {
     if (message.trim()) {
@@ -202,7 +227,10 @@ const MessageInput = () => {
           rows={1}
           placeholder="Type a message..."
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            handleTyping(e);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
