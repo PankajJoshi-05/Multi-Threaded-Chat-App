@@ -4,11 +4,11 @@ import useSocketStore from './socketStore';
 import toast from 'react-hot-toast';
 const API_URL = 'http://localhost:3000/api/v1/chats';
 
-const useChatStore = create((set) => ({
+const useChatStore = create((set,get) => ({
   messages:[],
   chats:null,
   selectedChat: null,
-  isGroup: false,
+  groupMembers:[],
   isMessagesLoading: false,
   isChatsLoading: false,
   allUsers:[],
@@ -128,7 +128,7 @@ else set({ isMessagesLoading: true })
 
   sendVoiceMessage:async(formData)=>{
     try{
-      const response= await axios.put(`${API_URL}//send-voice-message`,formData,{
+      const response= await axios.put(`${API_URL}/send-voice-message`,formData,{
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -144,6 +144,108 @@ else set({ isMessagesLoading: true })
      const memberIds = members.map(member => member._id);
      const socket = useSocketStore.getState().socket;
      socket.emit("NEW_MESSAGE",chatId,memberIds,message);
+  },
+
+  //group functionalities
+  changeGroupProfile:async(formData)=>{
+     try{
+        const response=await axios.put(`${API_URL}/change-group-profile`,formData,{
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          }
+        });
+        get().fetchChats();
+        toast.success(response.data.message);
+     }catch(err){
+        console.log("Error in changing group profile", err);
+        toast.error(err.response?.data?.message || err.message);
+     }
+  },
+  changeGroupName:async(chatId,name)=>{
+    try{
+      const response=await axios.put(`${API_URL}/change-group-name`,{chatId,name});
+      get().fetchChats();
+      toast.success(response.data.message);
+    }catch(err){
+      console.log("Error in changing group name", err);
+      toast.error(err.response?.data?.message || err.message);
+    }
+  },
+  changeGroupBio:async(chatId,bio)=>{
+    try{
+      const response=await axios.put(`${API_URL}/change-group-bio`,{chatId,bio});
+      get().fetchChats();
+      toast.success(response.data.message);
+    }catch(err){
+      console.log("Error in changing group bio", err);
+      toast.error(err.response?.data?.message || err.message);
+    }
+  },
+  addMemberstoGroup: async (chatId, members) => {
+    try {
+      const response = await axios.put(`${API_URL}/add-members`, { chatId, members });
+      toast.success(response.data.message);
+      get().fetchAllUsers();
+      get().getGroupMembers(chatId);
+    } catch (err) {
+      console.log("Error in adding members to group", err);
+      toast.error(err.response?.data?.message || err.message);
+    }
+  },
+  removeMembersFromGroup:async(chatId,memberId)=>{
+     try{
+      const response=await axios.put(`${API_URL}/remove-member`,{chatId,memberId});
+       toast.success(response.data.message);
+       get().getGroupMembers(chatId);
+
+     }catch(err){
+       console.log("Error in removing members from group", err);
+       toast.error(err.response?.data?.message || err.message);
+     }
+  },
+  getGroupMembers:async(chatId)=>{
+    try{
+      const response=await axios.get(`${API_URL}/get-group-members`, {
+        params: { chatId },
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true,
+      });
+      console.log(response.data);
+      set({groupMembers:response.data.members});
+    }catch(err){
+      console.log("Error in getting group members", err);
+      toast.error(err.response?.data?.message || err.message);
+    }
+  },
+  leaveGroup:async(chatId,newCreator)=>{
+    try{
+       const response = await axios.delete(`${API_URL}/leave-group/${chatId}`, {
+      data: { newCreator },
+      headers: {
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
+    });
+     get().setSelectedChat(null);
+     get().fetchChats();
+      toast.success(response.data.message);
+    }catch(err){
+      console.log("Error in leaving group", err);
+      toast.error(err.response?.data?.message || err.message);
+    }
+  },
+
+  deleteChat:async(chatId)=>{
+    try{
+      const response=await axios.delete(`${API_URL}/delete-chat/${chatId}`);
+      get().fetchChats();
+      toast.success(response.data.message);
+    }catch(err){
+      console.log("Error in deleting group", err);
+      toast.error(err.response?.data?.message || err.message);
+    }
   }
 }));
 
