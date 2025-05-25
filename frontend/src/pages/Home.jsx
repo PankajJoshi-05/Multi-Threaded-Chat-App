@@ -6,7 +6,7 @@ import useChatStore from '../store/chatStore'
 import NoChatSelected from '../components/chat/NoChatSelected'
 import { Outlet,useLocation, useParams} from 'react-router-dom'
 import { useEffect } from 'react'
-import { set } from 'mongoose'
+import useIsMobile from '../hooks/useIsMobile'
 
 const Home = () => {
   const location=useLocation();
@@ -23,6 +23,10 @@ const Home = () => {
     }
     }
   }, [id,chats]);
+
+  
+  const isMobile = useIsMobile();
+
   return (
     <div className='h-screen w-full flex flex-col'>
        <Header/>
@@ -30,8 +34,18 @@ const Home = () => {
         <Sidebar />
         {isMainPannelShown?(
           <>
-          <MainPannel />
-        {selectedChat ? <ChatWindow /> : <NoChatSelected />}
+           {isMobile ? (
+              selectedChat ? (
+                <ChatWindow />
+              ) : (
+                <MainPannel />
+              )
+            ) : (
+              <>
+                <MainPannel />
+                {selectedChat ? <ChatWindow /> : <NoChatSelected />}
+              </>
+            )}
          </>
         ):
         (
