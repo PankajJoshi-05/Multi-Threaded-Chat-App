@@ -4,10 +4,9 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationEmail,sendWelcomeEmail,sendPasswordResetEmail,sendResetSuccessEmail} from "../utils/email.utils.js";
 import jwt from "jsonwebtoken";
-import { toNamespacedPath } from "path";
 
 export const signup = async (req, res) => {
-    const { userName, email, password } = req.body;
+    let { userName, email, password } = req.body;
     try {
         if (!userName || !email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });

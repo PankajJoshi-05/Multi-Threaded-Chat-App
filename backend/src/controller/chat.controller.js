@@ -105,7 +105,7 @@ export const changeGroupName = async (req, res) => {
       members: group.members,
       message: `Group name changed to ${name}`
     });
-
+    emitEvent(req, REFETCH_CHATS, group.members);
     res.status(200).json({ message: "Group name changed successfully", group });
   } catch (error) {
     res.status(500).json({ message: "Failed to change group name", error: error.message });
@@ -116,11 +116,9 @@ export const changeGroupName = async (req, res) => {
 export const changeGroupProfile = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "Group profile is required" });
-
     const { chatId } = req.body;
 
     const group = await validateGroup(chatId, req.userId);
-
     const filePath = req.file.path;
     const result = await cloudinary.uploader.upload(filePath, { folder: 'profile' });
 
@@ -132,7 +130,7 @@ export const changeGroupProfile = async (req, res) => {
 
     group.profile = result.secure_url;
     await group.save();
-
+    emitEvent(req, REFETCH_CHATS, group.members);
     res.status(200).json({ message: "Group profile changed successfully", group });
   } catch (error) {
     res.status(500).json({ message: "Failed to change group profile", error: error.message });
@@ -155,13 +153,12 @@ export const changeGroupBio = async (req, res) => {
       members: group.members,
       message: `Group bio changed to ${bio}`
     });
-
+    emitEvent(req, REFETCH_CHATS, group.members);
     res.status(200).json({ message: "Group bio changed successfully", group });
   } catch (error) {
     res.status(500).json({ message: "Failed to change group bio", error: error.message });
   }
 }
-
 // Add Members to group
 export const addMembers = async (req, res) => {
   try {
@@ -188,6 +185,7 @@ export const addMembers = async (req, res) => {
       members: group.members,
       message: `$New members added to ${group.name}`
     });
+    emitEvent(req, REFETCH_CHATS,group.members);
     res.status(200).json({ message: "Members added successfully", group });
   } catch (error) {
     res.status(500).json({ message: "Failed to add members", error: error.message });
@@ -217,7 +215,7 @@ export const removeMember = async (req, res) => {
     emitEvent(req, ALERT, [memberId], {
       message: `You have been removed from ${group.name}`
     });
-
+    emitEvent(req, REFETCH_CHATS, group.members);
     res.status(200).json({ message: "Member removed successfully", group });
   } catch (error) {
     res.status(500).json({ message: "Failed to remove member", error: error.message });
@@ -328,7 +326,9 @@ export const deleteChat = async (req, res) => {
   const chatId = req.params.id;
   try {
     if (!chatId) throw new Error("Chat ID is required");
+    const chat = await Chat.findById(chatId);
     await Chat.deleteOne({ _id: chatId });
+    emitEvent(req,REFETCH_CHATS,chat.members);
     res.status(200).json({ message: "chat/group deleted successfully" });
   } catch (error) {
     console.log("Error deleting chat/group", error);
@@ -464,9 +464,6 @@ export const sendVoiceMessage = async (req, res) => {
       content: result.secure_url,
       timestamp: Date.now(),
     };
-    chat.lastMessage="Voice Message";
-    chat.updatedAt=new Date();
-    await chat.save();
     const message = await Message.create(messageForDB);
     chat.lastMessage = "Voice Message";
     chat.updatedAt = new Date();
