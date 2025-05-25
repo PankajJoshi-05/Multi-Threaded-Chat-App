@@ -138,6 +138,7 @@ export const acceptFriendRequest=async(req,res)=>{
         Chat.create({
             members,
             groupChat: false,
+            lastMessage:"",
         }),
         Request.deleteOne({
             _id:requestId
