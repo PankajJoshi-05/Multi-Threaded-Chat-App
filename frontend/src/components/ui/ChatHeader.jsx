@@ -1,8 +1,9 @@
-import React from 'react';
+import {useState} from 'react';
 import Avatar from './Avatar';
 import  useChatStore from '../../store/chatStore';
 import useSocketStore from '../../store/socketStore';
 import { useAuthStore } from '../../store/authStore'
+import ChatProfile from '../chat/ChatProfile';
 const ChatHeader = () => {
   const {selectedChat} = useChatStore();
   const {onlineUsers} = useSocketStore();
@@ -15,8 +16,12 @@ const ChatHeader = () => {
     ? selectedChat.members.filter(m => m._id !== user._id && onlineUsers.has(m._id)).length
     : 0;
 
+  const [showProfile, setShowProfile] = useState(false);
+
   return (
-    <div className="w-full bg-base-100 border-b border-base-300 shadow-sm p-3 absolute top-0 z-10">
+    <>
+    <div className="w-full bg-base-100 border-b border-base-300 shadow-sm p-3 absolute top-0 z-10"
+      onClick={() => setShowProfile(true)}>
       <div className="flex items-center gap-3">
         <div className="relative w-12 h-12 rounded-full overflow-hidden">
           <Avatar src={selectedChat.profile} alt={selectedChat.name} />
@@ -25,16 +30,20 @@ const ChatHeader = () => {
           )}
         </div>
         <div>
-          <p className="font-semibold text-base-content">{selectedChat.name}</p>
+          <p className="font-semibold text-secondary">{selectedChat.name}</p>
           <p className="text-xs text-base-content opacity-60">
             {selectedChat?.groupChat 
-              ? `${onlineMembersCount}/${selectedChat.members.length} online` 
+              ? `${onlineMembersCount+1}/${selectedChat.members.length} online` 
               : isOnline ? "Online" : "Offline"
             }
           </p>
         </div>
       </div>
     </div>
+    {showProfile && (
+        <ChatProfile onClose={() => setShowProfile(false)} />
+      )}
+    </>
   );
 };
 
