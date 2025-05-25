@@ -1,14 +1,16 @@
 import MessageInput from '../ui/MessageInput'
 import ChatHeader from '../ui/ChatHeader'
 import Message from '../chat/Message'
-import { useEffect,useRef,useCallback } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import useChatStore from '../../store/chatStore'
 import { LoaderCircle } from 'lucide-react';
 import useSocketStore from '../../store/socketStore'
 import { useAuthStore } from '../../store/authStore'
+import { Ellipsis } from 'lucide-react';
+
 const ChatWindow = () => {
 
-  const {fetchMessages,
+  const { fetchMessages,
     messages,
     isMessagesLoading,
     selectedChat,
@@ -16,13 +18,14 @@ const ChatWindow = () => {
     totalPages,
     isPaginationLoading
   } = useChatStore();
-  
-   const containerRef = useRef(null);
+
+  const containerRef = useRef(null);
   const bottomRef = useRef(null);
   const prevHeightRef = useRef(0);
 
-  const {joinChat,leaveChat} = useSocketStore();
-  const {user} = useAuthStore();
+  const { joinChat, leaveChat, typingStatus } = useSocketStore();
+  console.log("Typing Status", typingStatus);
+  const { user } = useAuthStore();
   useEffect(() => {
     if (selectedChat) {
       joinChat(user._id, selectedChat.members.map(m => m._id));
@@ -61,7 +64,7 @@ const ChatWindow = () => {
     }
   }, [currentPage, totalPages, fetchMessages, selectedChat, isMessagesLoading]);
 
-  if(isMessagesLoading){
+  if (isMessagesLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <p>Loading...</p>
@@ -72,7 +75,7 @@ const ChatWindow = () => {
     <div className="relative h-full w-full bg-base-100 text-base-content flex flex-col overflow-hidden">
       <ChatHeader />
       <div
-        className="flex-1 overflow-y-auto mt-20 p-2 pb-20 scrollbar-hide"
+        className={`flex-1 overflow-y-auto mt-20 p-2 pb-20 scrollbar-hide`}
         ref={containerRef}
         onScroll={handleScroll}
       >
@@ -82,11 +85,21 @@ const ChatWindow = () => {
           </div>
         )}
 
-        {messages.map((msg) => (
-          <Message key={msg._id + Date.now()} message={msg} />
+        {messages.map((msg,index) => (
+          <Message key={msg._id ||`temp-${index}`}message={msg} />
         ))}
 
         <div ref={bottomRef} />
+        {selectedChat && typingStatus[selectedChat._id] && (
+          <div className="flex items-center gap-2 px-4  text-sm text-muted-foreground text-primary">
+            <Ellipsis className="w-5 h-5 animate-pulse text-primary" />
+            {selectedChat.groupChat ? (
+              <span>Someone is typing...</span>
+            ) : (
+              <span>Typing...</span>
+            )}
+          </div>
+        )}
       </div>
       <MessageInput />
     </div>

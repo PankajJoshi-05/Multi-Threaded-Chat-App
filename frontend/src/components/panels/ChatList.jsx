@@ -58,7 +58,7 @@ const ChatList = () => {
             <ChatListItem 
               name={chat.name} 
               profilePic={chat.profile} 
-              lastMessage={chat.lastMessage?.content || ''} 
+              lastMessage={chat.lastMessage || ''} 
               time={formatChatTime(chat.updatedAt)} 
             />
           </div>
