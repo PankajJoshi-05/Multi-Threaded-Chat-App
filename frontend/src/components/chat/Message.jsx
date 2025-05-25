@@ -1,11 +1,21 @@
 import React from 'react';
-import { Check, CheckCheck, Clock, FileText, FileAudio } from 'lucide-react';
+import { FileText, FileAudio } from 'lucide-react';
 import Avatar from '../ui/Avatar.jsx';
 import { useAuthStore } from '../../store/authStore';
 import {formatChatTime} from "../../constants/formatChatTime.js"
 const Message = ({ message }) => {
   const{user} = useAuthStore();
-  const isCurrentUser = message.sender._id === user._id;
+
+  if (!message?.sender) {
+  return (
+    <div className="text-sm text-warning px-4 py-1">
+      Sending...
+    </div>
+  );
+}
+
+  const isCurrentUser = message?.sender?._id === user._id;
+
 
   const renderMessageContent = () => {
     switch (message.type) {
@@ -15,7 +25,7 @@ const Message = ({ message }) => {
             <img
               src={message.content}
               alt="image"
-              className="max-w-full max-h-64 object-cover cursor-pointer"
+              className="max-w-[280px] max-h-[280px] object-cover cursor-pointer"
               onClick={() => window.open(message.content, '_blank')}
             />
           </div>
@@ -23,8 +33,8 @@ const Message = ({ message }) => {
       case 'audio':
         return (
           <div className="flex items-center gap-2 mt-1">
-            <FileAudio className="text-primary" />
-            <audio controls src={message.content} className="max-w-full" />
+            <FileAudio className="text-accent" />
+            <audio controls src={message.content} className="max-w-[240px] " />
           </div>
         );
       case 'file':
@@ -53,9 +63,9 @@ const Message = ({ message }) => {
               className="w-10 h-10 rounded-full object-cover"
             />
           </div>
-          <p className="text-sm font-medium text-base-content">{message.sender.userName}</p>
           <div>
-            <div className="bg-base-100 text-base-content rounded-lg rounded-tl-none px-4 py-2 shadow-sm">
+            <div className="bg-base-200 text-base-content rounded-lg rounded-tl-none px-4 py-2 shadow-sm">
+              <p className="text-secondary font-semibold ">{message.sender.userName}</p>
               {renderMessageContent()}
               <div className="flex items-center justify-end mt-1 space-x-1 text-sm text-base-content opacity-70">
                 <span className="text-xs">{formatChatTime(message.updatedAt)}</span>
@@ -67,8 +77,8 @@ const Message = ({ message }) => {
         <div className="flex flex-col items-end">
           <div className="flex items-end gap-2">
             <div className="bg-primary text-primary-content rounded-lg rounded-br-none px-4 py-2">
-               <p>You</p>
-              {renderMessageContent()}
+               <p className="text-accent font-semibold">You</p>
+                {renderMessageContent()}
               <div className="flex items-center justify-end mt-1 space-x-1 text-sm opacity-80">
                 <span className="text-xs">{formatChatTime(message.updatedAt)}</span>
               </div>
