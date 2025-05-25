@@ -7,6 +7,9 @@ const ChatSchema = new mongoose.Schema({
     profile:{
         type:String,
     },
+    bio:{
+        type:String,
+    },
     groupChat: {
         type: Boolean,
         default: false,
@@ -21,9 +24,8 @@ const ChatSchema = new mongoose.Schema({
                 ref: "User",
             }
         ],
-    latestMessage: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Message",
+    lastMessage: {
+           type:String,
         },
 }, {
     timestamps: true,
