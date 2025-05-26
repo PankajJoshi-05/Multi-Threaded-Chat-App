@@ -182,6 +182,14 @@ export const resetPassword=async(req,res)=>{
        const {token}=req.params;
        const {password}=req.body;
 
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+       if (!passwordRegex.test(password)) {
+           return res.status(400).json({
+               success: false,
+               message: "Password must be at least 6 characters long and include 1 uppercase letter, 1 number, and 1 special character."
+           });
+       }
+
        const user=await User.findOne({
         resetPasswordToken:token,
         resetPasswordTokenExpiredAt:{$gt:Date.now()}

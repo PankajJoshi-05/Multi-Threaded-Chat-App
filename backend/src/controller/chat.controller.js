@@ -12,7 +12,7 @@ import { runEncryptionWorker } from "../utils/runEncryptionWorker.js";
 export const getChats = async (req, res) => {
   try {
     const chats = await Chat.find({ members: req.userId })
-      .populate("members", "userName profile")
+      .populate("members", "userName profile bio")
       .populate("lastMessage")
       .sort({ updatedAt: -1 })
       .lean();
@@ -41,6 +41,7 @@ export const getChats = async (req, res) => {
           _id: chat._id,
           name: otherUser?.userName,
           profile: otherUser?.profile,
+          bio: otherUser?.bio || "",
           groupChat: false,
           members: chat.members,
           lastMessage: chat.lastMessage || null,

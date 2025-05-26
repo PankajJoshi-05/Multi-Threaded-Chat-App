@@ -7,11 +7,11 @@ import path from "path";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    host: process.env.MailTRAP_HOST,
-    port: process.env.MAILTRAP_PORT,
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
     auth: {
-        user: process.env.MAILTRAP_USER,
-        pass: process.env.MAILTRAP_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     }
 });
 const __filename = fileURLToPath(import.meta.url);
