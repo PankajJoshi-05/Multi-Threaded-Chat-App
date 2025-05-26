@@ -14,6 +14,7 @@ import Message from "./models/message.model.js";
 import Chat from "./models/chat.model.js";
 import { socketAuthticator } from "./controller/auth.controller.js";
 import { corsOptions } from "././utils/corsOptions.js";
+import { runEncryptionWorker } from "./utils/runEncryptionWorker.js";
 import {
   CHAT_JOINED,
   CHAT_LEAVED,
@@ -74,16 +75,19 @@ io.on("connection", socket => {
             chat: chatId,
             updatedAt: Date.now()
         }
+        console.log(messages);
+        try{
+            const encryptedContent = await runEncryptionWorker('encrypt.worker.js', messages);
+            console.log(encryptedContent);
         const messageForDB = {
-            content: messages,
+            content: encryptedContent,
+            type: "text", 
             sender: user._id,
             chat: chatId
         }
         const memberSocket = getSockets(members);
         io.to(memberSocket).emit(NEW_MESSAGE, messageForRealTime);
         io.to(memberSocket).emit(NEW_MESSAGE_ALERT, { chatId });
-
-        try {
             const chat=await Chat.findById(chatId);
             chat.lastMessage=messages;
             chat.updatedAt=Date.now();

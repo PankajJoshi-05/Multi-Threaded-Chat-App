@@ -18,7 +18,7 @@ const Home = () => {
     const chat = chats.find(chat => chat._id === id);
     if (chat) {
       setSelectedChat(chat);
-      resetUnread(selectedChat._id);
+      resetUnread(selectedChat?._id);
     } else {
       console.error("Chat not found for ID:", id);
     }

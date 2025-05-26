@@ -7,7 +7,7 @@ import validateGroup from "../utils/validateGroups.js";
 import emitEvent from "../utils/emitEvent.js";
 import { ALERT, NEW_ATTACHMENT, NEW_MESSAGE_ALERT, REFETCH_CHATS } from "../constants/events.js";
 import { v4 as uuid } from "uuid";
-
+import { runEncryptionWorker } from "../utils/runEncryptionWorker.js";
 //get all chats
 export const getChats = async (req, res) => {
   try {
@@ -493,10 +493,26 @@ export const getMessages = async (req, res) => {
         .lean(),
       Message.countDocuments({ chat: chatId })
     ]);
+    const decryptedMessages = await Promise.all(
+      messages.map(async (msg) => {
+        if (msg.type === "text" && msg.content) {
+          try {
+            const decrypted = await runEncryptionWorker("decrypt.worker.js", msg.content);
+            console.log(decrypted);
+            return { ...msg, content: decrypted.data};
+          } catch (err) {
+            console.error("Failed to decrypt message:", err);
+            return msg; 
+          }
+        }
+        return msg; 
+      })
+    );
+
     const totalPages = Math.ceil(totalMessagesCount / limit);
     res.status(200).json({
       success: true,
-      messages: messages.reverse(),
+      messages:  decryptedMessages.reverse(),
       totalPages
     });
   } catch (error) {
