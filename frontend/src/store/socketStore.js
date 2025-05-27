@@ -15,7 +15,7 @@ const useSocketStore = create((set, get) => {
     typingStatus: {},
     connectSocket: () => {
       if (!socket) {
-        socket = io("https://localhost:3000", {
+        socket = io("http://localhost:3000", {
           withCredentials: true,
         });
 
